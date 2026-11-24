@@ -157,6 +157,23 @@ ctx.update(
     verdi=fmt(round(verdi, -4), 0), verdi_mva=fmt(round(verdi * 1.25, -4), 0), vk_chg=pct(vk_chg), vk_cls=cls(vk_chg),
 )
 
+# ---- Energy-crisis winter 2022/23 vs 2025/26 ----
+ek_a = om['2022/23']
+ek_mwh = cur['Total'] - ek_a['Total']
+ek_parts = [('Ny del + Resterende', (cur['NyDel'] + cur['Rest']) - (ek_a['NyDel'] + ek_a['Rest'])),
+            ('Ventilasjon', cur['Vent'] - ek_a['Vent']), ('Kompressorer', cur['Komp'] - ek_a['Komp']),
+            ('Avfukter', cur['Avf'] - ek_a['Avf'])]
+assert abs(sum(v for _, v in ek_parts) - ek_mwh) < 0.5, 'meters must add up to the total'
+energikrise = [dict(navn=n, mwh=round(v, 1), kr=round(v * 1000 * PRIS, -2)) for n, v in sorted(ek_parts, key=lambda t: -t[1])]
+energikrise.append(dict(navn='Totalt', mwh=round(ek_mwh, 1), kr=round(ek_mwh * 1000 * PRIS, -2), total=True))
+ek_kr = ek_mwh * 1000 * PRIS
+ek_vk = cur['vaerkorr'] - ek_a['vaerkorr']
+ek_c = chg(ek_a['Total'], cur['Total'])
+ctx.update(ek_mwh=fmt(ek_mwh), ek_pct=b(pct(ek_c), cls(ek_c)), ek_pct_plain=pct(ek_c),
+           ek_kr=fmt(round(ek_kr, -4), 0), ek_kr_mva=fmt(round(ek_kr * 1.25, -4), 0),
+           ek_vk_mwh=fmt(ek_vk), ek_vk_kr=fmt(round(ek_vk * 1000 * PRIS, -4), 0),
+           ek_ant=fmt(cur['antennevekst'] - ek_a['antennevekst'], 0))
+
 if has_nov:
     nov_para = (f'<p>November 2026 så langt ({o26["nov_dager"]} dager): {b(fmt(o26["nov_kwh_dogn"], 0))} kWh i døgnet, '
                 f'{b(pct(nov_fjor), cls(nov_fjor))} mot november 2025 og {b(pct(nov_vs_snitt), cls(nov_vs_snitt))} mot snittet for 2014–2025, '
@@ -172,7 +189,7 @@ vt_rows = '\n'.join(
 ctx['vt_rows'] = vt_rows
 
 data = dict(okt_mai=okt_mai, maaned=maaned, uker=uker, temperatur=temperatur, grunnlast=grunnlast,
-            sommerlast=sommerlast, okt_nov=okt_nov, hoest=hoest, antenne=300)
+            sommerlast=sommerlast, okt_nov=okt_nov, hoest=hoest, energikrise=energikrise, antenne=300)
 ctx['data_json'] = json.dumps(data, ensure_ascii=False, separators=(',', ':'))
 ctx['d3'] = open(os.path.join(HERE, 'vendor', 'd3.min.js')).read()
 ctx['app_js'] = open(os.path.join(HERE, 'app.js')).read()

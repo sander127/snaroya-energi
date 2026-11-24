@@ -90,7 +90,7 @@ section, details { scroll-margin-top: 96px; }
     <a class="tab" href="/priser/">Strømpriser</a>
   </div>
   <div class="subnav" aria-label="På denne siden">
-    <a href="#hosten-2026">Høsten 2026</a><a href="#siden-2015">Siden 2015</a><a href="#maaneder">Måned for måned</a><a href="#uker">Uke for uke</a><a href="#vaer">Været</a><a href="#sommer">Sommer og antenner</a><a href="#hendelser">Hendelser</a><a href="#metode">Metode</a>
+    <a href="#hosten-2026">Høsten 2026</a><a href="#siden-2015">Siden 2015</a><a href="#energikrisen">2022/23</a><a href="#maaneder">Måned for måned</a><a href="#uker">Uke for uke</a><a href="#vaer">Været</a><a href="#sommer">Sommer og antenner</a><a href="#hendelser">Hendelser</a><a href="#metode">Metode</a>
   </div>
 </nav>
 <main>
@@ -138,8 +138,22 @@ section, details { scroll-margin-top: 96px; }
     <h2 style="margin-top:10px">Spart per vinter mot 2014/15</h2>
     <p class="muted">MWh mindre enn i 2014/15, oktober–mai. Covid-sesongene er grå, og er ikke med i summen over.</p>
     <div class="chart short" id="sparechart"></div>
-    <p>De største endringene kom etter at driften ble overtatt: dippen vinteren 2015/16, trinnet ned rundt påsken 2017, den lavere sommerlasten fra 2018 og det lavere nivået på Resterende fra våren 2026. Energikrisevinteren 2022/23 viser at det fortsatt er mer å hente i oppvarmingen.</p>
+    <p>De største endringene kom etter at driften ble overtatt: dippen vinteren 2015/16, trinnet ned rundt påsken 2017, den lavere sommerlasten fra 2018 og det lavere nivået på Resterende fra våren 2026. Energikrisevinteren 2022/23 var lavest av alle, se egen del under.</p>
     <p class="muted">Forbehold: dataene starter i januar 2014, så sammenligningen før 2015 bygger på sesongen 2014/15 og januar–mai 2014 og 2015. Covid-sesongene 2019/20 og 2020/21 er holdt utenfor summen. Antennene på taket bruker mer strøm i dag enn før, så den reelle nedgangen i driften er litt større enn totalen viser.</p>
+  </section>
+
+  <section id="energikrisen">
+    <h2>Energikrisevinteren 2022/23: rundt {{ek_kr}} kr spart mot 2025/26</h2>
+    <p>Under energikrisen ble oppvarmingen kuttet kraftig, og hallen var svært kald. Fra oktober til mai 2022/23 brukte hallen <b>{{om2223}}</b> MWh, mot <b>{{om_total}}</b> MWh i 2025/26. Det er <b>{{ek_mwh}} MWh</b> mindre ({{ek_pct}}). Med strømprisen fra oktoberfakturaen 2026 er det rundt <b>{{ek_kr}} kr</b> eks. mva. Kuttet ble reversert høsten 2023.</p>
+    <div class="tiles">
+      <div class="card"><span class="label">Mindre strøm, oktober–mai</span><span><span class="big">{{ek_mwh}}</span><span class="unit">MWh</span></span><span class="label">{{om2223}} MWh i 2022/23 mot {{om_total}} MWh i 2025/26 ({{ek_pct_plain}})</span></div>
+      <div class="card"><span class="label">Spart med dagens strømpris</span><span><span class="big good">{{ek_kr}}</span><span class="unit">kr</span></span><span class="label">{{ek_mwh}} MWh × {{pris}} kr/kWh, eks. mva.</span></div>
+      <div class="card"><span class="label">Inkludert mva.</span><span><span class="big good">{{ek_kr_mva}}</span><span class="unit">kr</span></span><span class="label">Med 25 % mva.</span></div>
+      <div class="card"><span class="label">Værkorrigert</span><span><span class="big">{{ek_vk_mwh}}</span><span class="unit">MWh</span></span><span class="label">Ca. {{ek_vk_kr}} kr eks. mva. Været forklarer lite av forskjellen.</span></div>
+    </div>
+    <p class="muted">Kroner spart per del av anlegget, oktober–mai 2022/23 mot 2025/26. Ny del og Resterende er slått sammen, fordi last flyttet mellom dem i disse årene.</p>
+    <div class="chart short" id="ekchart"></div>
+    <p class="muted">Kronebeløpene bruker prisen fra oktoberfakturaen 2026: {{pris}} kr/kWh eks. mva. (spot, energiledd, elavgift og håndtering). Strømprisen vinteren 2022/23 var en annen, så det faktiske beløpet den vinteren var også et annet. Effektleddet er ikke med. Antennene brukte rundt {{ek_ant}} MWh mer i 2025/26 enn i 2022/23.</p>
   </section>
 
   <section id="maaneder">
@@ -207,7 +221,7 @@ section, details { scroll-margin-top: 96px; }
       <li><b>Det store fallet kom i 2017.</b> Oktober–mai var {{om1415}} MWh i 2014/15, {{om1516}} MWh i 2015/16 og {{om1617}} MWh i 2016/17, og så {{om1718}} MWh i 2017/18. Fallet skjedde rundt påsken 2017, før undermålerne kom, så dataene viser ikke hva som ble endret.</li>
       <li><b>Vinteren 2015/16 hadde en forsmak.</b> Fra jul 2015 til midten av februar 2016 lå forbruket på samme lave nivå som etter 2017, midt i den kaldeste perioden i hele datasettet. Januar 2016 brukte {{jan16}} MWh mot {{jan15}} MWh i januar 2015.</li>
       <li><b>Høsten 2020, under covid, skiller seg ut.</b> Fra 1. oktober til 22. november brukte hallen {{h20}} kWh i døgnet, mer enn noen annen høst etter 2015.</li>
-      <li><b>Energikrisevinteren viser hva som er mulig.</b> Oktober–mai 2022/23 brukte bare {{om2223}} MWh. Ventilasjonen brukte {{vent2223}} MWh mot {{vent2425}} MWh i 2024/25, mens kompressorene brukte omtrent det samme. Besparelsen kom fra oppvarming, og den forsvant igjen høsten 2023.</li>
+      <li><b>Energikrisevinteren 2022/23 er den laveste sesongen.</b> Oppvarmingen ble kuttet kraftig, og kuttet ble reversert høsten 2023. Se egen del om 2022/23.</li>
       <li><b>Ventilasjonen varmet i varmt vær høsten 2022.</b> Den brukte {{vsep22}} MWh i september 2022 mot {{vsep23}} MWh i september 2023, med 14–19 °C ute i ukene rundt.</li>
       <li><b>Resterende falt våren 2026 og har holdt seg lavere.</b> {{rmai26}} MWh i mai 2026 mot {{rmai25}} MWh i mai 2025, og {{rsep26}} mot {{rsep25}} MWh i september. Oktober 2026 endte på {{tokt26}} MWh totalt mot {{tokt25}} MWh året før.</li>
       <li><b>Undermålerne har ikke rapportert siden 14. oktober 2026.</b> Alle fem stoppet samtidig, mens hovedmåleren fortsatt teller. Siden da står hele forbruket på Resterende, og fordelingen per måler mangler. Vi jobber med å få undermålerne i gang igjen.</li>

@@ -353,10 +353,43 @@
     }
   }
 
+  // ---- Energy-crisis winter: kroner saved per part of the plant ----
+  function drawEnergikrise() {
+    const el = document.getElementById('ekchart');
+    if (!el || !D.energikrise) return;
+    el.replaceChildren();
+    const rows = D.energikrise;
+    const W = Math.max(280, el.clientWidth || 600);
+    const rowH = 30, mt = 6, mb = 24;
+    const H = mt + mb + rows.length * rowH;
+    el.style.minHeight = H + 'px';
+    const svg = d3.select(el).append('svg').attr('width', W).attr('height', H).attr('role', 'img')
+      .attr('aria-label', 'Liggende stolper: kroner spart oktober–mai 2022/23 mot 2025/26 per del av anlegget, og totalt.');
+    const ml = measure(svg, rows.map((r) => r.navn)) + 12, mr = 78;
+    const x = d3.scaleLinear().domain([Math.min(0, d3.min(rows, (r) => r.kr)), d3.max(rows, (r) => r.kr)]).nice().range([ml, W - mr]);
+    const y = d3.scaleBand().domain(rows.map((r) => r.navn)).range([mt, H - mb]).padding(0.2);
+    const g = svg.append('g').attr('class', 'grid').attr('transform', 'translate(0,' + (H - mb) + ')');
+    g.call(d3.axisBottom(x).ticks(W < 480 ? 2 : 5).tickSize(-(H - mb - mt)).tickFormat((v) => (W < 480 ? '' : d0(v))));
+    svg.append('g').attr('transform', 'translate(' + ml + ',0)').call(d3.axisLeft(y).tickSize(0).tickPadding(6))
+      .call((a) => a.select('.domain').remove())
+      .call((a) => a.selectAll('text').style('font-weight', (n) => (n === 'Totalt' ? 700 : null)));
+    const t = tip(el);
+    svg.append('g').selectAll('rect').data(rows).join('rect')
+      .style('fill', (r) => (r.total ? 'var(--c0)' : 'var(--ok)'))
+      .attr('x', (r) => x(Math.min(0, r.kr))).attr('y', (r) => y(r.navn)).attr('height', y.bandwidth())
+      .attr('width', (r) => Math.abs(x(r.kr) - x(0)))
+      .on('pointermove pointerdown', (evt, r) => t.show(evt, r.navn, [d0(r.kr) + ' kr spart (eks. mva.)', d1(r.mwh) + ' MWh mindre i 2022/23']))
+      .on('pointerleave', () => t.hide());
+    svg.append('g').selectAll('text').data(rows).join('text').attr('class', 'val')
+      .attr('x', (r) => x(Math.max(0, r.kr)) + 4).attr('y', (r) => y(r.navn) + y.bandwidth() / 2 + 4)
+      .style('font-weight', (r) => (r.total ? 700 : null)).text((r) => d0(r.kr) + ' kr');
+  }
+
   function drawAll() {
     drawHoest();
     drawOktMai();
     drawSpare();
+    drawEnergikrise();
     drawHeat();
     drawUker();
     drawTemp();
