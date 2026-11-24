@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Strømforbruk Snarøya Curlinghall 2014–2026</title>
+<style>
+:root {
+  --bg: #ffffff; --fg: #1a1d21; --muted: #5f6670; --panel: #f6f7f9; --line: #e3e6ea;
+  --grid: #eceef1; --axis: #c9ced5; --ok: #1f8a4c; --bad: #c2362b; --tip-bg: #ffffff; --ref: #8a929c;
+  --c0: #2f6fd6; --c1: #9dbcf0; --c2: #9aa4b1; --c3: #e6a23c; --c4: #d0503f; --muted-bar: #c3c9d1;
+  --okt: #2f6fd6; --nov: #e6a23c;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #15171a; --fg: #e8eaed; --muted: #a0a7b0; --panel: #1e2125; --line: #2e3238;
+    --grid: #262a2f; --axis: #444a52; --ok: #4cc283; --bad: #f07466; --tip-bg: #23272c; --ref: #8a929c;
+    --c0: #5b8fe6; --c1: #2f4f86; --c2: #6b7480; --c3: #e9ad52; --c4: #e06b5b; --muted-bar: #4a5059;
+    --okt: #5b8fe6; --nov: #e9ad52;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--fg); }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 16px; line-height: 1.55; }
+main { max-width: 1060px; margin: 0 auto; padding: 32px 20px 64px; display: flex; flex-direction: column; gap: 40px; }
+h1 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; font-size: 2rem; line-height: 1.2; margin: 0; }
+h2 { font-size: 1.2rem; font-weight: 600; margin: 0 0 4px; }
+p { margin: 0; max-width: 75ch; }
+.lede { margin-top: 12px; font-size: 1.05rem; }
+.muted { color: var(--muted); font-size: 0.85rem; }
+.good { color: var(--ok); } .bad { color: var(--bad); }
+section { display: flex; flex-direction: column; gap: 10px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 4px; }
+.card .label { color: var(--muted); font-size: 0.82rem; }
+.card .big { font-family: Georgia, "Times New Roman", serif; font-size: 1.9rem; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.card .unit { font-size: 0.95rem; color: var(--muted); margin-left: 4px; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 0.82rem; color: var(--muted); }
+.sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+.chart { position: relative; width: 100%; min-height: 280px; }
+.chart.short { min-height: 250px; }
+.chart svg { display: block; overflow: visible; }
+.chart .tick text, .chart .axlab { fill: var(--muted); font-size: 12px; }
+.chart .domain, .chart .tick line { stroke: var(--axis); }
+.chart .grid line { stroke: var(--grid); }
+.chart .grid .domain { display: none; }
+.chart .val { fill: var(--fg); font-size: 12px; font-variant-numeric: tabular-nums; }
+.tip { position: absolute; pointer-events: none; background: var(--tip-bg); border: 1px solid var(--line); box-shadow: 0 4px 14px rgba(0,0,0,.12); border-radius: 8px; padding: 6px 9px; font-size: 0.8rem; white-space: nowrap; z-index: 3; font-variant-numeric: tabular-nums; }
+.tip .h { font-weight: 600; margin-bottom: 2px; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 0.82rem; width: 100%; }
+th, td { padding: 6px 7px; border-bottom: 1px solid var(--line); text-align: right; }
+thead th { color: var(--muted); font-weight: 600; }
+table.heat { min-width: 760px; }
+table.heat th[scope=row] { text-align: left; white-space: nowrap; }
+table.heat .om { border-left: 2px solid var(--line); font-weight: 600; }
+table.tests { min-width: 560px; }
+table.tests td:first-child, table.tests th:first-child, table.tests td:last-child, table.tests th:last-child { text-align: left; }
+.controls { display: flex; gap: 8px; align-items: center; font-size: 0.85rem; color: var(--muted); }
+select { font: inherit; color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; }
+ul.list { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 10px; max-width: 80ch; }
+ul.notes { margin: 0; padding-left: 1.2em; font-size: 0.82rem; color: var(--muted); }
+details { border-top: 1px solid var(--line); padding-top: 12px; }
+summary { cursor: pointer; font-weight: 600; }
+details ul { margin-top: 10px; }
+footer { color: var(--muted); font-size: 0.8rem; border-top: 1px solid var(--line); padding-top: 12px; }
+@media (max-width: 520px) { main { padding: 20px 14px 48px; gap: 32px; } h1 { font-size: 1.6rem; } .card .big { font-size: 1.6rem; } }
+@media print { .tablewrap { overflow: visible; } table.heat { min-width: 0; font-size: 0.7rem; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Strømforbruket i Snarøya Curlinghall 2014–2026</h1>
+    <p class="lede">Oktober–mai 2025/26 brukte hallen <b>{{om_total}}</b> MWh. Det er {{e_prev}} mot 2024/25, {{e_1415}} mot 2014/15, den første hele sesongen i dataene, og {{e_1718}} mot 2017/18, det første året med undermålere. Trekker vi fra den økte grunnlasten fra antennene, er endringen mot 2014/15 {{e_ex_1415}}. Været forklarer bare noen få MWh av forskjellene mellom årene – resten er drift.</p>
+    <p class="muted" style="margin-top:10px">Ukeverdier fra energioppfølgingen (uke 1/2014–47/2026) og værdata fra Open-Meteo for Snarøya. Ukene er fordelt jevnt på dagene og summert til måneder. Sesong = august–juli. Oppdatert 24. november 2026.</p>
+  </header>
+
+  <section class="tiles" aria-label="Nøkkeltall">
+    <div class="card"><span class="label">Oktober–mai 2025/26</span><span><span class="big">{{om_total}}</span><span class="unit">MWh</span></span><span class="label"><span class="{{e_prev_cls}}">{{e_prev_plain}}</span> mot 2024/25</span></div>
+    <div class="card"><span class="label">Oktober–mai mot 2014/15</span><span class="big {{e_1415_cls}}">{{e_1415_plain}}</span><span class="label">Uten økt antennelast: {{e_ex_1415_plain}}</span></div>
+    <div class="card"><span class="label">Underliggende forbruk mot 2017/18</span><span class="big {{e_ex_1718_cls}}">{{e_ex_1718}}</span><span class="label">Uten økt antennelast. Med den: {{e_1718_plain}}</span></div>
+    <div class="card"><span class="label">Værkorrigert oktober–mai 2025/26</span><span><span class="big">{{vaerkorr}}</span><span class="unit">MWh</span></span><span class="label">Som om sesongen hadde normalt vær</span></div>
+    <div class="card"><span class="label">Sommer-grunnlast 2026</span><span><span class="big">{{gl26}}</span><span class="unit">kWh/døgn</span></span><span class="label">Snitt 2018–2021: {{gl_ref}} kWh/døgn</span></div>
+  </section>
+
+  <section id="hosten-2026">
+    <h2>Oktober og november 2026 mot tidligere år</h2>
+    <p>Oktober 2026 brukte <b>{{okt_mwh}}</b> MWh, eller {{okt_kwh}} kWh i døgnet. Det er {{okt_fjor}} mot oktober 2025 og {{okt_snitt}} mot snittet for 2014–2025. Bare {{okt_lavere}} av de tidligere oktobermånedene brukte mindre per døgn. Snittemperaturen ute var {{okt_temp}} °C, mot {{okt_temp25}} °C i fjor.</p>
+    {{nov_para}}
+    <p class="muted">kWh per døgn, slik at en påbegynt måned kan sammenlignes med hele måneder. 2026 er markert.</p>
+    <div class="legend"><span><span class="sw" style="background:var(--okt)"></span>Oktober</span><span><span class="sw" style="background:var(--nov)"></span>November</span></div>
+    <div class="chart short" id="oktnov"></div>
+  </section>
+
+  <section id="okt-mai">
+    <h2>Oktober–mai, sesong for sesong</h2>
+    <p class="muted">MWh. Lys del er anslått ekstra antennelast utover nivået i 2018–2021. Pek eller trykk på en stolpe for detaljer.</p>
+    <div class="legend"><span><span class="sw" style="background:var(--c0)"></span>Underliggende forbruk</span><span><span class="sw" style="background:var(--c1)"></span>Økt grunnlast (antenner, anslag)</span></div>
+    <div class="chart" id="oktmai"></div>
+    <ul class="notes" id="oktmai-notes"></ul>
+  </section>
+
+  <section id="maaneder">
+    <h2>Måned for måned</h2>
+    <p class="muted">MWh per måned. Grønn = lavere enn medianen for måneden, rød = høyere. Siste kolonne er oktober–mai. Dataene starter i januar 2014. Undermålerne kom i juni 2017, avfukteren fikk egen måler i oktober 2019, og undermålerne har ikke rapportert siden 14. oktober 2026.</p>
+    <div class="controls"><label for="maaler">Vis</label>
+      <select id="maaler">
+        <option value="Total">Totalt</option>
+        <option value="Komp">Kompressorer (K1 + K2)</option>
+        <option value="Vent">Ventilasjon</option>
+        <option value="NyDel">Underfordeling ny del</option>
+        <option value="Rest">Resterende forbruk</option>
+        <option value="Avf">Avfukter</option>
+      </select>
+    </div>
+    <div class="tablewrap">
+      <table class="heat">
+        <thead><tr><th scope="col" style="text-align:left">Sesong</th><th>Aug</th><th>Sep</th><th>Okt</th><th>Nov</th><th>Des</th><th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th><th>Mai</th><th>Jun</th><th>Jul</th><th class="om">Okt–mai</th></tr></thead>
+        <tbody id="heat-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="uker">
+    <h2>Fra 2014 til i dag, uke for uke</h2>
+    <p class="muted">Totalforbruk i MWh per uke. Dalene er sommerstopp. Se etter dippen vinteren 2015/16, trinnet ned våren 2017, covid-stengingen våren 2020 og energikrisevinteren 2022/23.</p>
+    <div class="chart short" id="ukechart"></div>
+  </section>
+
+  <section id="vaer">
+    <h2>Været: oppvarming og kjøling bytter plass</h2>
+    <p>Når det blir kaldt, øker ventilasjonen og ny del (oppvarming). Når det er mildt og fuktig, øker kompressorene og avfukteren. Totalen er derfor nesten flat gjennom året. De kaldeste ukene ligger høyest, men bare litt over de milde.</p>
+    <p class="muted">Snitt MWh per uke med is, sesongene 2023/24–2025/26, etter ukens snittemperatur ute (°C). Tallet over stolpen er totalen.</p>
+    <div class="legend"><span><span class="sw" style="background:var(--c0)"></span>Kompressorer</span><span><span class="sw" style="background:var(--c1)"></span>Avfukter</span><span><span class="sw" style="background:var(--c2)"></span>Resterende</span><span><span class="sw" style="background:var(--c3)"></span>Ny del</span><span><span class="sw" style="background:var(--c4)"></span>Ventilasjon</span></div>
+    <div class="chart" id="tempchart"></div>
+    <h2 style="margin-top:14px">Kuldeskifte og nedbør gir ingen målbar ekstra topp</h2>
+    <p>Tabellen viser hvor mye mer eller mindre hallen brukte i uker med disse forholdene, utover det temperatur, luftfuktighet og sol allerede forklarer. Ingen av effektene er større enn usikkerheten. Det som faktisk driver forbruket er temperatur (oppvarming), luftfuktighet ute (kompressorer og avfukter) og sol (solrike uker trenger mindre varme). Med ukedata kan en kort kuldetopp over et par døgn likevel skjule seg i snittet.</p>
+    <div class="tablewrap">
+      <table class="tests">
+        <thead><tr><th>Værforhold</th><th>Uker</th><th>Effekt, kWh/uke</th><th>Usikkerhet</th><th>Konklusjon</th></tr></thead>
+        <tbody>
+{{vt_rows}}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="sommer">
+    <h2>Sommerforbruket falt kraftig mellom 2017 og 2018</h2>
+    <p>I ukene isanlegget står om sommeren, brukte hallen {{sl14}} kWh/døgn i 2014 og {{sl17}} kWh/døgn i 2017, men bare {{sl18}} kWh/døgn i 2018. En last som gikk hele året forsvant altså mellom august 2017 og sommeren 2018. Siden har sommerlasten steget igjen, mest på grunn av antennene.</p>
+    <p class="muted">Median kWh per døgn for hele hallen i sommeruker (uke 25–34) uten isanlegg. I 2022 gikk ventilasjonen om sommeren.</p>
+    <div class="chart short" id="sommerchart"></div>
+  </section>
+
+  <section id="antenner">
+    <h2>Antennene: grunnlasten om sommeren har steget i trinn</h2>
+    <p>Om sommeren, når isanlegget, ventilasjonen og avfukteren står, er Resterende forbruk nesten bare det som går døgnet rundt. Den grunnlasten lå rundt {{gl_ref}} kWh/døgn i 2018–2021, steg i 2022 og 2023, og igjen i 2026. Det passer med at antennene er bygget ut i trinn, og at de i dag står for omtrent hele sommerlasten – nær anslaget på 300 kWh/døgn.</p>
+    <p class="muted">Median kWh per døgn på Resterende i sommeruker uten is, ventilasjon og avfukter (uke 25–33). Ukedata viser bare hvilken sommer nivået endret seg, ikke datoen.</p>
+    <div class="chart short" id="grunnlastchart"></div>
+  </section>
+
+  <section id="hendelser">
+    <h2>Det som skiller seg ut i dataene</h2>
+    <ul class="list">
+      <li><b>Det store fallet kom i 2017.</b> Oktober–mai var {{om1415}} MWh i 2014/15, {{om1516}} MWh i 2015/16 og {{om1617}} MWh i 2016/17, og så {{om1718}} MWh i 2017/18. Fallet skjedde rundt påsken 2017, før undermålerne kom, så dataene viser ikke hva som ble endret.</li>
+      <li><b>Vinteren 2015/16 hadde en forsmak.</b> Fra jul 2015 til midten av februar 2016 lå forbruket på samme lave nivå som etter 2017, midt i den kaldeste perioden i hele datasettet. Januar 2016 brukte {{jan16}} MWh mot {{jan15}} MWh i januar 2015.</li>
+      <li><b>Energikrisevinteren viser hva som er mulig.</b> Oktober–mai 2022/23 brukte bare {{om2223}} MWh. Ventilasjonen brukte {{vent2223}} MWh mot {{vent2425}} MWh i 2024/25, mens kompressorene brukte omtrent det samme. Besparelsen kom fra oppvarming, og den forsvant igjen høsten 2023.</li>
+      <li><b>Ventilasjonen varmet i varmt vær høsten 2022.</b> Den brukte {{vsep22}} MWh i september 2022 mot {{vsep23}} MWh i september 2023, med 14–19 °C ute i ukene rundt.</li>
+      <li><b>Resterende falt våren 2026 og har holdt seg lavere.</b> {{rmai26}} MWh i mai 2026 mot {{rmai25}} MWh i mai 2025, og {{rsep26}} mot {{rsep25}} MWh i september. Oktober 2026 endte på {{tokt26}} MWh totalt mot {{tokt25}} MWh året før.</li>
+      <li><b>Undermålerne har ikke rapportert siden 14. oktober 2026.</b> Alle fem stoppet samtidig, mens hovedmåleren fortsatt teller. Siden da står hele forbruket på Resterende, og fordelingen per måler mangler.</li>
+      <li><b>Ny del og Resterende bytter last.</b> I november 2017 flyttet en stor last fra Resterende til Ny del, og fra høsten 2021 til våren 2023 var Ny del nesten uten vinterlast. Sammenlign derfor helst summen av de to, eller totalen.</li>
+    </ul>
+  </section>
+
+  <details>
+    <summary>Metode og forbehold</summary>
+    <ul class="list">
+      <li>Hver ukeverdi er fordelt likt på ukens syv dager og summert per kalendermåned. Månedstall er derfor litt utjevnet i overgangene. Bare hele måneder vises i månedstabellen.</li>
+      <li>Eksporten har ingen verdier før 2014. Før juni 2017 står alt forbruk på Resterende. Etter 14. oktober 2026 går alt igjen inn på Resterende. Uke 30 og 31 i 2026 har helt like verdier og er trolig estimert.</li>
+      <li>Vær: Open-Meteo sitt historiske arkiv for 59,88 N 10,60 Ø, døgnverdier summert til uker. Ukesnittemperaturen stemmer godt med hallens egen utetemperatur der begge finnes (2014–2023).</li>
+      <li>Værkorrigering: en modell for ukeforbruket med sesong, graddager (under 14 °C), duggpunkt og solinnstråling. Avviket fra normalvær for hver uke er trukket fra.</li>
+      <li>Antennevekst: sommer-grunnlasten på Resterende for årene før og etter hver sesong, minus snittet for 2018–2021, ganget med dagene oktober–mai. Antar at sommerlasten på Resterende er antennene.</li>
+      <li>Værtestene sammenligner uker med is i både uka og uka før. Usikkerheten er to standardfeil.</li>
+    </ul>
+  </details>
+
+  <footer>Snarøya Curlinghall · energirapport · data til og med 22. november 2026</footer>
+</main>
+<script>window.SC_DATA = {{data_json}};</script>
+<script>{{d3}}</script>
+<script>{{app_js}}</script>
+</body>
+</html>
