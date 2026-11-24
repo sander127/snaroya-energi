@@ -65,11 +65,34 @@ details { border-top: 1px solid var(--line); padding-top: 12px; }
 summary { cursor: pointer; font-weight: 600; }
 details ul { margin-top: 10px; }
 footer { color: var(--muted); font-size: 0.8rem; border-top: 1px solid var(--line); padding-top: 12px; }
+.topnav { position: sticky; top: 0; z-index: 20; background: var(--bg); border-bottom: 1px solid var(--line); }
+.topnav .inner { max-width: 1060px; margin: 0 auto; padding: 10px 20px 6px; display: flex; align-items: center; gap: 6px 18px; flex-wrap: wrap; }
+.topnav .brand { font-weight: 700; margin-right: auto; color: var(--fg); text-decoration: none; }
+.topnav a.tab { color: var(--muted); text-decoration: none; padding: 4px 0; border-bottom: 2px solid transparent; font-weight: 600; }
+.topnav a.tab:hover { color: var(--fg); }
+.topnav a.tab.active { color: var(--fg); border-bottom-color: var(--c0); }
+.subnav { max-width: 1060px; margin: 0 auto; padding: 2px 20px 8px; display: flex; gap: 16px; overflow-x: auto; white-space: nowrap; font-size: 0.85rem; scrollbar-width: none; }
+.subnav::-webkit-scrollbar { display: none; }
+.subnav a { color: var(--muted); text-decoration: none; }
+.subnav a:hover { color: var(--fg); text-decoration: underline; }
+section, details { scroll-margin-top: 96px; }
+@media (max-width: 520px) { .topnav .inner { padding: 8px 14px 4px; } .subnav { padding: 2px 14px 8px; } }
+@media print { .topnav { display: none; } }
 @media (max-width: 520px) { main { padding: 20px 14px 48px; gap: 32px; } h1 { font-size: 1.6rem; } .card .big { font-size: 1.6rem; } }
 @media print { .tablewrap { overflow: visible; } table.heat { min-width: 0; font-size: 0.7rem; } }
 </style>
 </head>
 <body>
+<nav class="topnav" aria-label="Hovedmeny">
+  <div class="inner">
+    <a class="brand" href="/">Snarøya Curlinghall · Energi</a>
+    <a class="tab active" href="/" aria-current="page">Energirapport</a>
+    <a class="tab" href="/priser/">Strømpriser</a>
+  </div>
+  <div class="subnav" aria-label="På denne siden">
+    <a href="#hosten-2026">Høsten 2026</a><a href="#siden-2015">Siden 2015</a><a href="#maaneder">Måned for måned</a><a href="#uker">Uke for uke</a><a href="#vaer">Været</a><a href="#sommer">Sommer og antenner</a><a href="#hendelser">Hendelser</a><a href="#metode">Metode</a>
+  </div>
+</nav>
 <main>
   <header>
     <h1>Strømforbruket i Snarøya Curlinghall 2014–2026</h1>
@@ -201,7 +224,7 @@ footer { color: var(--muted); font-size: 0.8rem; border-top: 1px solid var(--lin
     </ul>
   </section>
 
-  <details>
+  <details id="metode">
     <summary>Metode og forbehold</summary>
     <ul class="list">
       <li>Hver ukeverdi er fordelt likt på ukens syv dager og summert per kalendermåned. Månedstall er derfor litt utjevnet i overgangene. Bare hele måneder vises i månedstabellen.</li>

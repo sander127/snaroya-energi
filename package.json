@@ -1,0 +1,9 @@
+{
+  "name": "snaroya-energi",
+  "private": true,
+  "type": "module",
+  "description": "Energirapport og strømpriser for Snarøya Curlinghall",
+  "devDependencies": {
+    "@netlify/functions": "^6.1.2"
+  }
+}

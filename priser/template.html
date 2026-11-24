@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Strømpriser NO1 – Snarøya Curlinghall</title>
+<style>
+{{base_css}}
+.advice { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--c0); border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; max-width: 80ch; }
+.advice h3 { margin: 0; font-size: 1rem; }
+.toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; font-size: 0.85rem; }
+.toggle button { font: inherit; background: var(--panel); color: var(--muted); border: 0; padding: 5px 12px; cursor: pointer; }
+.toggle button[aria-pressed="true"] { background: var(--c0); color: #fff; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+.grid2 h3 { margin: 0 0 4px; font-size: 1rem; }
+.gradient { height: 10px; border-radius: 5px; width: 220px; max-width: 60%; }
+.scale { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--muted); }
+.status { font-size: 0.9rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<nav class="topnav" aria-label="Hovedmeny">
+  <div class="inner">
+    <a class="brand" href="/">Snarøya Curlinghall · Energi</a>
+    <a class="tab" href="/">Energirapport</a>
+    <a class="tab active" href="/priser/" aria-current="page">Strømpriser</a>
+  </div>
+  <div class="subnav" aria-label="På denne siden">
+    <a href="#idag">I dag og i morgen</a><a href="#aaret">Døgnet gjennom året</a><a href="#profiler">Vinter og sommer</a><a href="#dyreste">Dyreste og billigste timer</a><a href="#om">Om tallene</a>
+  </div>
+</nav>
+<main>
+  <header>
+    <h1>Strømpriser for Østlandet (NO1)</h1>
+    <p class="lede">Spotprisen time for time, slik den settes i day-ahead-auksjonen dagen før. Prisene for i morgen kommer rundt kl. 13 og hentes automatisk. Alle priser er i øre/kWh uten mva., nettleie og avgifter.</p>
+  </header>
+
+  <section id="idag">
+    <h2>I dag og i morgen</h2>
+    <p class="status" id="status">Henter priser …</p>
+    <div class="tiles" id="pris-kort"></div>
+    <div class="legend"><span><span class="sw" style="background:var(--ok)"></span>Billigere enn snittet</span><span><span class="sw" style="background:var(--c3)"></span>Rundt snittet</span><span><span class="sw" style="background:var(--bad)"></span>Dyrere enn snittet</span><span><span class="sw" style="background:none;border:2px solid var(--fg)"></span>Nå</span></div>
+    <div class="chart" id="dagchart"></div>
+    <div class="advice" id="raad" hidden></div>
+  </section>
+
+  <section id="aaret">
+    <h2>Når på døgnet er strømmen dyrest?</h2>
+    <p>{{aar_lede}}</p>
+    <div class="controls">
+      <span>Vis</span>
+      <div class="toggle" role="group" aria-label="Visning">
+        <button type="button" id="vis-rel" aria-pressed="true">Dyrt og billig i måneden</button>
+        <button type="button" id="vis-abs" aria-pressed="false">Faktisk pris</button>
+      </div>
+    </div>
+    <p class="muted" id="heat-forklaring">Hver rute er snittprisen for den timen i måneden. Rødt er dyrere og grønt billigere enn månedens snitt, slik at mønsteret gjennom døgnet trer fram. Pek eller trykk på en rute for tall.</p>
+    <div class="scale" id="heat-skala"></div>
+    <div class="chart" id="heatchart"></div>
+  </section>
+
+  <section id="profiler">
+    <h2>Vinter og sommer, hverdag og helg</h2>
+    <p>{{profil_lede}}</p>
+    <div class="grid2">
+      <div><h3>Vinter (nov–mar) og sommer (apr–okt)</h3>
+        <div class="legend"><span><span class="sw" style="background:var(--c0)"></span>Vinter</span><span><span class="sw" style="background:var(--c3)"></span>Sommer</span></div>
+        <div class="chart short" id="profil-sesong"></div></div>
+      <div><h3>Hverdager og helg</h3>
+        <div class="legend"><span><span class="sw" style="background:var(--c0)"></span>Hverdager</span><span><span class="sw" style="background:var(--c4)"></span>Lørdag og søndag</span></div>
+        <div class="chart short" id="profil-uke"></div></div>
+    </div>
+  </section>
+
+  <section id="dyreste">
+    <h2>Hvor ofte er timen døgnets dyreste – eller billigste?</h2>
+    <p>{{teller_lede}}</p>
+    <div class="legend"><span><span class="sw" style="background:var(--bad)"></span>Døgnets dyreste time (antall dager)</span><span><span class="sw" style="background:var(--ok)"></span>Døgnets billigste time (antall dager)</span></div>
+    <div class="chart" id="tellerchart"></div>
+    <p><b>For isanlegget:</b> {{hall_tekst}}</p>
+  </section>
+
+  <details id="om">
+    <summary>Om tallene</summary>
+    <ul class="list">
+      <li>Prisene er day-ahead-prisene for NO1, de samme som Nord Pool publiserer. De hentes fra den gratis tjenesten hvakosterstrommen.no, som henter dem fra ENTSO-E og regner om til kroner med Norges Banks kurs. Små avvik mot Nord Pools egne kronepriser kan forekomme.</li>
+      <li>Siden spør nettstedets egen tjeneste <code>/api/priser?dato=ÅÅÅÅ-MM-DD</code>, som henter og mellomlagrer prisene. Den samme adressen kan senere brukes av Ignition.</li>
+      <li>Årsoversikten bygger på {{dager}} dager med timepriser ({{periode}}). November 2025 har bare de siste {{nov25}} dagene, og november 2026 de første {{nov26}}.</li>
+      <li>Prisene er uten mva., påslag, nettleie, elavgift og strømstøtte. Strømstøtten for frivillige organisasjoner regnes etter en fast forbruksprofil, så den endrer ikke hvilke timer det lønner seg å flytte forbruk til.</li>
+    </ul>
+  </details>
+
+  <footer>Snarøya Curlinghall · strømpriser · kilde: hvakosterstrommen.no (ENTSO-E)</footer>
+</main>
+<script>window.PRIS_DATA = {{data_json}};</script>
+<script>{{d3}}</script>
+<script>{{app_js}}</script>
+</body>
+</html>
