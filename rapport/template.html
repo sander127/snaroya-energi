@@ -73,38 +73,55 @@ footer { color: var(--muted); font-size: 0.8rem; border-top: 1px solid var(--lin
 <main>
   <header>
     <h1>Strømforbruket i Snarøya Curlinghall 2014–2026</h1>
-    <p class="lede">Oktober–mai 2025/26 brukte hallen <b>{{om_total}}</b> MWh. Det er {{e_prev}} mot 2024/25, {{e_1415}} mot 2014/15, den første hele sesongen i dataene, og {{e_1718}} mot 2017/18, det første året med undermålere. Trekker vi fra den økte grunnlasten fra antennene, er endringen mot 2014/15 {{e_ex_1415}}. Været forklarer bare noen få MWh av forskjellene mellom årene – resten er drift.</p>
-    <p class="muted" style="margin-top:10px">Ukeverdier fra energioppfølgingen (uke 1/2014–47/2026) og værdata fra Open-Meteo for Snarøya. Ukene er fordelt jevnt på dagene og summert til måneder. Sesong = august–juli. Oppdatert 24. november 2026.</p>
+    <p class="lede">Høsten 2026 er like lav som de beste høstene som er målt: {{h_vs_snitt}} mot snittet for 2014–2025. Siden driften ble overtatt sommeren 2015 har forbruket fra oktober til mai falt fra {{om1415}} til {{om_total}} MWh ({{e_1415_plain}}). Været forklarer nesten ingenting av forskjellene – det er driften.</p>
+    <p class="muted" style="margin-top:10px">Ukeverdier fra energioppfølgingen (uke 1/2014–47/2026) og værdata fra Open-Meteo for Snarøya. Undermålerne har ikke rapportert siden 14. oktober 2026, og vi jobber med å få dem i gang igjen; totalforbruket måles som før. Ukene er fordelt jevnt på dagene og summert til måneder. Sesong = august–juli. Oppdatert 24. november 2026.</p>
   </header>
 
-  <section class="tiles" aria-label="Nøkkeltall">
-    <div class="card"><span class="label">Oktober–mai 2025/26</span><span><span class="big">{{om_total}}</span><span class="unit">MWh</span></span><span class="label"><span class="{{e_prev_cls}}">{{e_prev_plain}}</span> mot 2024/25</span></div>
-    <div class="card"><span class="label">Oktober–mai mot 2014/15</span><span class="big {{e_1415_cls}}">{{e_1415_plain}}</span><span class="label">Uten økt antennelast: {{e_ex_1415_plain}}</span></div>
-    <div class="card"><span class="label">Underliggende forbruk mot 2017/18</span><span class="big {{e_ex_1718_cls}}">{{e_ex_1718}}</span><span class="label">Uten økt antennelast. Med den: {{e_1718_plain}}</span></div>
-    <div class="card"><span class="label">Værkorrigert oktober–mai 2025/26</span><span><span class="big">{{vaerkorr}}</span><span class="unit">MWh</span></span><span class="label">Som om sesongen hadde normalt vær</span></div>
-    <div class="card"><span class="label">Sommer-grunnlast 2026</span><span><span class="big">{{gl26}}</span><span class="unit">kWh/døgn</span></span><span class="label">Snitt 2018–2021: {{gl_ref}} kWh/døgn</span></div>
-  </section>
-
   <section id="hosten-2026">
-    <h2>Oktober og november 2026 mot tidligere år</h2>
-    <p>Oktober 2026 brukte <b>{{okt_mwh}}</b> MWh, eller {{okt_kwh}} kWh i døgnet. Det er {{okt_fjor}} mot oktober 2025 og {{okt_snitt}} mot snittet for 2014–2025. Bare {{okt_lavere}} av de tidligere oktobermånedene brukte mindre per døgn. Snittemperaturen ute var {{okt_temp}} °C, mot {{okt_temp25}} °C i fjor.</p>
-    {{nov_para}}
-    <p class="muted">kWh per døgn, slik at en påbegynt måned kan sammenlignes med hele måneder. 2026 er markert.</p>
-    <div class="legend"><span><span class="sw" style="background:var(--okt)"></span>Oktober</span><span><span class="sw" style="background:var(--nov)"></span>November</span></div>
-    <div class="chart short" id="oktnov"></div>
+    <h2>Høsten 2026: like lavt som de beste årene</h2>
+    <p>Fra 1. oktober til 22. november har hallen brukt <b>{{h_kwh}}</b> kWh i døgnet. Det er {{h_vs_snitt}} mot snittet for samme datoer i 2014–2025, {{h_vs_fjor}} mot i fjor og {{h_vs_14}} mot høsten 2014, før driften ble overtatt. Ingen tidligere høst har vært lavere – bare 2022 og 2023 lå på samme nivå. {{h_temp_text}}</p>
+    <div class="tiles">
+      <div class="card"><span class="label">1. oktober–22. november 2026</span><span><span class="big">{{h_kwh}}</span><span class="unit">kWh/døgn</span></span><span class="label">{{h_mwh}} MWh totalt</span></div>
+      <div class="card"><span class="label">Mot snittet 2014–2025</span><span class="big {{h_vs_snitt_cls}}">{{h_vs_snitt_plain}}</span><span class="label">Snitt: {{h_snitt}} kWh/døgn</span></div>
+      <div class="card"><span class="label">Mot samme periode i fjor</span><span class="big {{h_vs_fjor_cls}}">{{h_vs_fjor_plain}}</span><span class="label">2025: {{h25}} kWh/døgn</span></div>
+      <div class="card"><span class="label">Mot høsten 2014</span><span class="big {{h_vs_14_cls}}">{{h_vs_14_plain}}</span><span class="label">Før driften ble overtatt</span></div>
+    </div>
+    <p class="muted">Snitt kWh per døgn fra 1. oktober til 22. november, de samme datoene hvert år. Isen er alltid lagt i denne perioden, så årene er direkte sammenlignbare. Den stiplede linjen er snittet for 2014–2025.</p>
+    <div class="chart" id="hoestchart"></div>
+    <div class="tablewrap">
+      <table class="tests">
+        <thead><tr><th>Periode</th><th>2026</th><th>2025</th><th>Snitt 2014–2025</th><th>2026 mot snitt</th></tr></thead>
+        <tbody>
+{{h_rows}}
+        </tbody>
+      </table>
+    </div>
   </section>
 
-  <section id="okt-mai">
-    <h2>Oktober–mai, sesong for sesong</h2>
-    <p class="muted">MWh. Lys del er anslått ekstra antennelast utover nivået i 2018–2021. Pek eller trykk på en stolpe for detaljer.</p>
-    <div class="legend"><span><span class="sw" style="background:var(--c0)"></span>Underliggende forbruk</span><span><span class="sw" style="background:var(--c1)"></span>Økt grunnlast (antenner, anslag)</span></div>
+  <section id="siden-2015">
+    <h2>Siden driften ble overtatt i 2015: om lag en fjerdedel mindre strøm</h2>
+    <p>Driften av hallen ble overtatt sommeren 2015. Sesongen før, 2014/15, brukte hallen <b>{{om1415}}</b> MWh fra oktober til mai. I 2025/26 var tallet <b>{{om_total}}</b> MWh, {{e_1415}}. Regnet uten den økte antennelasten er nedgangen {{e_ex_1415}}. Januar–mai viser det samme: {{jm_pre}} MWh i snitt i 2014 og 2015, mot {{jm26}} MWh i 2026 ({{jm_chg}}).</p>
+    <div class="tiles">
+      <div class="card"><span class="label">Oktober–mai, 2014/15 → 2025/26</span><span class="big {{e_1415_cls}}">{{e_1415_plain}}</span><span class="label">{{om1415}} → {{om_total}} MWh</span></div>
+      <div class="card"><span class="label">Spart siden 2015</span><span><span class="big">{{cum}}</span><span class="unit">MWh</span></span><span class="label">Oktober–mai mot 2014/15, uten covid-sesongene. Det er {{cum_winters}} vintre med dagens forbruk.</span></div>
+      <div class="card"><span class="label">Verdi av årets besparelse</span><span><span class="big">{{verdi}}</span><span class="unit">kr</span></span><span class="label">{{spart_naa}} MWh × {{pris}} kr/kWh (prisen i oktober 2026, eks. mva.). Inkl. mva.: ca. {{verdi_mva}} kr.</span></div>
+      <div class="card"><span class="label">Værkorrigert endring</span><span class="big {{vk_cls}}">{{vk_chg}}</span><span class="label">Været forklarer nesten ingenting av nedgangen</span></div>
+    </div>
+    <h2 style="margin-top:10px">Oktober–mai, sesong for sesong</h2>
+    <p class="muted">MWh. Den stiplede linjen er nivået i 2014/15. Lys del er anslått ekstra antennelast utover nivået i 2018–2021. Pek eller trykk på en stolpe for detaljer.</p>
+    <div class="legend"><span><span class="sw" style="background:var(--muted-bar)"></span>Før 2015</span><span><span class="sw" style="background:var(--c0)"></span>Underliggende forbruk</span><span><span class="sw" style="background:var(--c1)"></span>Økt grunnlast (antenner, anslag)</span></div>
     <div class="chart" id="oktmai"></div>
     <ul class="notes" id="oktmai-notes"></ul>
+    <h2 style="margin-top:10px">Spart per vinter mot 2014/15</h2>
+    <p class="muted">MWh mindre enn i 2014/15, oktober–mai. Covid-sesongene er grå, og er ikke med i summen over.</p>
+    <div class="chart short" id="sparechart"></div>
+    <p>De største endringene kom etter at driften ble overtatt: dippen vinteren 2015/16, trinnet ned rundt påsken 2017, den lavere sommerlasten fra 2018 og det lavere nivået på Resterende fra våren 2026. Energikrisevinteren 2022/23 viser at det fortsatt er mer å hente i oppvarmingen.</p>
+    <p class="muted">Forbehold: dataene starter i januar 2014, så sammenligningen før 2015 bygger på sesongen 2014/15 og januar–mai 2014 og 2015. Covid-sesongene 2019/20 og 2020/21 er holdt utenfor summen. Høsten 2020 var driftsansvarlig permittert, og anlegget ble fulgt opp mindre tett – det forklarer det høye forbruket den høsten. Antennene på taket bruker mer strøm i dag enn før, så den reelle nedgangen i driften er litt større enn totalen viser.</p>
   </section>
 
   <section id="maaneder">
     <h2>Måned for måned</h2>
-    <p class="muted">MWh per måned. Grønn = lavere enn medianen for måneden, rød = høyere. Siste kolonne er oktober–mai. Dataene starter i januar 2014. Undermålerne kom i juni 2017, avfukteren fikk egen måler i oktober 2019, og undermålerne har ikke rapportert siden 14. oktober 2026.</p>
+    <p class="muted">MWh per måned. Grønn = lavere enn medianen for måneden, rød = høyere. Siste kolonne er oktober–mai. Dataene starter i januar 2014. Undermålerne kom i juni 2017, avfukteren fikk egen måler i oktober 2019, og undermålerne har ikke rapportert siden 14. oktober 2026. Vi jobber med å få dem i gang igjen.</p>
     <div class="controls"><label for="maaler">Vis</label>
       <select id="maaler">
         <option value="Total">Totalt</option>
@@ -166,10 +183,11 @@ footer { color: var(--muted); font-size: 0.8rem; border-top: 1px solid var(--lin
     <ul class="list">
       <li><b>Det store fallet kom i 2017.</b> Oktober–mai var {{om1415}} MWh i 2014/15, {{om1516}} MWh i 2015/16 og {{om1617}} MWh i 2016/17, og så {{om1718}} MWh i 2017/18. Fallet skjedde rundt påsken 2017, før undermålerne kom, så dataene viser ikke hva som ble endret.</li>
       <li><b>Vinteren 2015/16 hadde en forsmak.</b> Fra jul 2015 til midten av februar 2016 lå forbruket på samme lave nivå som etter 2017, midt i den kaldeste perioden i hele datasettet. Januar 2016 brukte {{jan16}} MWh mot {{jan15}} MWh i januar 2015.</li>
+      <li><b>Høsten 2020 skiller seg ut.</b> Under covid var driftsansvarlig permittert, og anlegget ble fulgt opp mindre tett. Fra 1. oktober til 22. november brukte hallen {{h20}} kWh i døgnet, mer enn noen annen høst etter 2015.</li>
       <li><b>Energikrisevinteren viser hva som er mulig.</b> Oktober–mai 2022/23 brukte bare {{om2223}} MWh. Ventilasjonen brukte {{vent2223}} MWh mot {{vent2425}} MWh i 2024/25, mens kompressorene brukte omtrent det samme. Besparelsen kom fra oppvarming, og den forsvant igjen høsten 2023.</li>
       <li><b>Ventilasjonen varmet i varmt vær høsten 2022.</b> Den brukte {{vsep22}} MWh i september 2022 mot {{vsep23}} MWh i september 2023, med 14–19 °C ute i ukene rundt.</li>
       <li><b>Resterende falt våren 2026 og har holdt seg lavere.</b> {{rmai26}} MWh i mai 2026 mot {{rmai25}} MWh i mai 2025, og {{rsep26}} mot {{rsep25}} MWh i september. Oktober 2026 endte på {{tokt26}} MWh totalt mot {{tokt25}} MWh året før.</li>
-      <li><b>Undermålerne har ikke rapportert siden 14. oktober 2026.</b> Alle fem stoppet samtidig, mens hovedmåleren fortsatt teller. Siden da står hele forbruket på Resterende, og fordelingen per måler mangler.</li>
+      <li><b>Undermålerne har ikke rapportert siden 14. oktober 2026.</b> Alle fem stoppet samtidig, mens hovedmåleren fortsatt teller. Siden da står hele forbruket på Resterende, og fordelingen per måler mangler. Vi jobber med å få undermålerne i gang igjen.</li>
       <li><b>Ny del og Resterende bytter last.</b> I november 2017 flyttet en stor last fra Resterende til Ny del, og fra høsten 2021 til våren 2023 var Ny del nesten uten vinterlast. Sammenlign derfor helst summen av de to, eller totalen.</li>
     </ul>
   </section>

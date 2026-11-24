@@ -103,7 +103,7 @@
   // ---- Oct–May per season ----
   function drawOktMai() {
     const rows = D.okt_mai;
-    const c = setup('oktmai', 300, 22, 26, d3.max(rows, (r) => r.Total) * 1.08, 'Stolpediagram over forbruk oktober–mai per sesong fra 2014/15 til 2025/26, delt i underliggende forbruk og anslått økt antennelast.');
+    const c = setup('oktmai', 310, 34, 26, d3.max(rows, (r) => r.Total) * 1.08, 'Stolpediagram over forbruk oktober–mai per sesong fra 2014/15 til 2025/26, delt i underliggende forbruk og anslått økt antennelast.');
     if (!c) return;
     const x = d3.scaleBand().domain(rows.map((r) => r.sesong)).range([c.ml, c.W - 2]).padding(0.22);
     const bw = x.bandwidth();
@@ -111,9 +111,11 @@
     bottomAxis(c, x, (s) => (bw < 30 ? "'" + s.slice(2, 4) : (bw < 44 ? s.slice(2) : s)));
     const stack = d3.stack().keys(['ekskl_antennevekst', 'antennevekst']).value((r, k) => r[k] || 0)(rows);
     const t = tip(c.el);
+    const base = rows.find((r) => r.sesong === '2014/15');
     c.svg.append('g').selectAll('g').data(stack).join('g')
       .style('fill', (d, i) => (i === 0 ? 'var(--c0)' : 'var(--c1)'))
       .selectAll('rect').data((d) => d).join('rect')
+      .style('fill', (d) => (d.data.sesong === '2014/15' ? 'var(--muted-bar)' : null))
       .attr('x', (d) => x(d.data.sesong)).attr('width', x.bandwidth())
       .attr('y', (d) => c.y(d[1])).attr('height', (d) => Math.max(0, c.y(d[0]) - c.y(d[1])))
       .on('pointermove pointerdown', (evt, d) => {
@@ -131,6 +133,15 @@
     c.svg.append('g').selectAll('text').data(rows.filter((r) => r.merknad)).join('text').attr('class', 'val')
       .attr('x', (r) => x(r.sesong) + x.bandwidth() / 2).attr('y', (r) => c.y(r.Total) - (x.bandwidth() >= 26 ? 18 : 4))
       .attr('text-anchor', 'middle').text('*');
+    if (base) {
+      const yb = c.y(base.Total);
+      c.svg.append('line').attr('x1', c.ml).attr('x2', c.W - 2).attr('y1', yb).attr('y2', yb)
+        .style('stroke', 'var(--ref)').attr('stroke-dasharray', '4 3');
+      const xs = x('2015/16') - x.step() * x.paddingInner() / 2;
+      c.svg.append('line').attr('x1', xs).attr('x2', xs).attr('y1', c.mt - 14).attr('y2', c.H - c.mb)
+        .style('stroke', 'var(--fg)').attr('stroke-width', 1).attr('stroke-dasharray', '2 3');
+      c.svg.append('text').attr('class', 'axlab').attr('x', xs + 5).attr('y', c.mt - 4).text('Driften overtatt');
+    }
     const notes = document.getElementById('oktmai-notes');
     if (notes) {
       notes.replaceChildren();
@@ -178,7 +189,7 @@
   // ---- Weekly line ----
   function drawUker() {
     const rows = D.uker.map((r) => Object.assign({}, r, { d: parseDay(r.mandag) })).filter((r) => r.d && r.Total != null);
-    const c = setup('ukechart', 260, 10, 24, d3.max(rows, (r) => r.Total), 'Linjediagram over totalt ukeforbruk i MWh fra januar 2014 til november 2026.');
+    const c = setup('ukechart', 260, 14, 24, d3.max(rows, (r) => r.Total), 'Linjediagram over totalt ukeforbruk i MWh fra januar 2014 til november 2026.');
     if (!c) return;
     const x = d3.scaleUtc().domain(d3.extent(rows, (r) => r.d)).range([c.ml, c.W - 6]);
     yGrid(c.svg, c.y, c.ml, c.W - 6);
@@ -186,6 +197,12 @@
     c.svg.append('g').attr('transform', 'translate(0,' + (c.H - c.mb) + ')').call(d3.axisBottom(x).ticks(d3.utcYear.every(every)).tickFormat(d3.utcFormat('%Y')).tickSizeOuter(0));
     c.svg.append('path').datum(rows).attr('fill', 'none').style('stroke', 'var(--c0)').attr('stroke-width', 1.3)
       .attr('d', d3.line().x((r) => x(r.d)).y((r) => c.y(r.Total)));
+    const tk = x(parseDay('2015-07-01'));
+    c.svg.append('line').attr('x1', tk).attr('x2', tk).attr('y1', c.mt).attr('y2', c.H - c.mb)
+      .style('stroke', 'var(--fg)').attr('stroke-width', 1).attr('stroke-dasharray', '2 3');
+    c.svg.append('text').attr('class', 'axlab').attr('x', tk + 5).attr('y', c.mt + 10).text('Driften overtatt');
+    const cv = x(parseDay('2020-09-01'));
+    c.svg.append('text').attr('class', 'axlab').attr('x', cv).attr('y', c.mt + 10).attr('text-anchor', 'middle').text('Covid, permittert');
     const dot = c.svg.append('circle').attr('r', 3.5).style('fill', 'var(--c0)').attr('visibility', 'hidden');
     const t = tip(c.el);
     const bis = d3.bisector((r) => r.d).center;
@@ -266,9 +283,80 @@
     }
   }
 
+
+  // ---- Autumn window, horizontal bars ----
+  function drawHoest() {
+    const el = document.getElementById('hoestchart');
+    if (!el) return;
+    el.replaceChildren();
+    const rows = [...D.hoest].sort((a, b) => a.aar - b.aar);
+    const hist = rows.filter((r) => r.aar >= 2014 && r.aar <= 2025);
+    const snitt = d3.mean(hist, (r) => r.kwh_dogn);
+    const W = Math.max(280, el.clientWidth || 600);
+    const rowH = 24, mt = 22, mb = 24;
+    const H = mt + mb + rows.length * rowH;
+    const svg = d3.select(el).append('svg').attr('width', W).attr('height', H).attr('role', 'img')
+      .attr('aria-label', 'Liggende stolper: snitt kWh per døgn fra 1. oktober til 22. november for hvert år 2014–2026, med snittet for 2014–2025 som stiplet linje.');
+    const ml = 44, mr = 46;
+    const x = d3.scaleLinear().domain([0, d3.max(rows, (r) => r.kwh_dogn) * 1.02]).nice().range([ml, W - mr]);
+    const y = d3.scaleBand().domain(rows.map((r) => String(r.aar))).range([mt, H - mb]).padding(0.18);
+    const g = svg.append('g').attr('class', 'grid').attr('transform', 'translate(0,' + (H - mb) + ')');
+    g.call(d3.axisBottom(x).ticks(W < 480 ? 4 : 6).tickSize(-(H - mb - mt)).tickFormat(d0));
+    svg.append('g').attr('transform', 'translate(' + ml + ',0)').call(d3.axisLeft(y).tickSize(0).tickPadding(6))
+      .call((a) => a.select('.domain').remove());
+    const t = tip(el);
+    const color = (r) => (r.aar === 2026 ? 'var(--c0)' : (r.aar < 2015 ? 'var(--muted-bar)' : 'var(--c1)'));
+    svg.append('g').selectAll('rect').data(rows).join('rect')
+      .style('fill', color)
+      .attr('x', x(0)).attr('y', (r) => y(String(r.aar))).attr('height', y.bandwidth())
+      .attr('width', (r) => Math.max(0, x(r.kwh_dogn) - x(0)))
+      .on('pointermove pointerdown', (evt, r) => t.show(evt, '1. okt–22. nov ' + r.aar, [
+        d0(r.kwh_dogn) + ' kWh per døgn', d1(r.mwh) + ' MWh i perioden', 'Snittemp. ute: ' + d1(r.temp) + ' °C']))
+      .on('pointerleave', () => t.hide());
+    svg.append('g').selectAll('text').data(rows).join('text').attr('class', 'val')
+      .attr('x', (r) => x(r.kwh_dogn) + 4).attr('y', (r) => y(String(r.aar)) + y.bandwidth() / 2 + 4)
+      .style('font-weight', (r) => (r.aar === 2026 ? 700 : null)).text((r) => d0(r.kwh_dogn));
+    svg.append('g').selectAll('text').data(rows.filter((r) => r.notis)).join('text').attr('class', 'val')
+      .attr('x', (r) => x(r.kwh_dogn) - 6).attr('y', (r) => y(String(r.aar)) + y.bandwidth() / 2 + 4)
+      .attr('text-anchor', 'end').style('font-size', '11px').style('fill', 'var(--fg)').text((r) => r.notis);
+    const xs = x(snitt);
+    svg.append('line').attr('x1', xs).attr('x2', xs).attr('y1', mt - 6).attr('y2', H - mb)
+      .style('stroke', 'var(--ref)').attr('stroke-dasharray', '4 3');
+    svg.append('text').attr('class', 'axlab').attr('x', xs).attr('y', mt - 9).attr('text-anchor', 'middle')
+      .text('Snitt 2014–2025: ' + d0(snitt));
+  }
+
+  // ---- Savings per winter vs 2014/15 ----
+  function drawSpare() {
+    const base = D.okt_mai.find((r) => r.sesong === '2014/15');
+    if (!base) return;
+    const covid = new Set(['2019/20', '2020/21']);
+    const rows = D.okt_mai.filter((r) => r.sesong !== '2014/15').map((r) => ({ sesong: r.sesong, spart: base.Total - r.Total, covid: covid.has(r.sesong), merknad: r.merknad }));
+    const c = setup('sparechart', 250, 20, 26, d3.max(rows, (r) => r.spart) * 1.12, 'Stolpediagram: MWh spart oktober–mai per sesong sammenlignet med 2014/15.');
+    if (!c) return;
+    const x = d3.scaleBand().domain(rows.map((r) => r.sesong)).range([c.ml, c.W - 2]).padding(0.22);
+    const bw = x.bandwidth();
+    yGrid(c.svg, c.y, c.ml, c.W - 2);
+    bottomAxis(c, x, (s) => (bw < 30 ? "'" + s.slice(2, 4) : (bw < 44 ? s.slice(2) : s)));
+    const t = tip(c.el);
+    c.svg.append('g').selectAll('rect').data(rows).join('rect')
+      .style('fill', (r) => (r.covid ? 'var(--muted-bar)' : 'var(--ok)'))
+      .attr('x', (r) => x(r.sesong)).attr('width', bw)
+      .attr('y', (r) => c.y(Math.max(0, r.spart))).attr('height', (r) => Math.abs(c.y(0) - c.y(r.spart)))
+      .on('pointermove pointerdown', (evt, r) => t.show(evt, 'Oktober–mai ' + r.sesong,
+        [d0(r.spart) + ' MWh mindre enn 2014/15'].concat(r.merknad ? [r.merknad] : [])))
+      .on('pointerleave', () => t.hide());
+    if (bw >= 24) {
+      c.svg.append('g').selectAll('text').data(rows).join('text').attr('class', 'val')
+        .attr('x', (r) => x(r.sesong) + bw / 2).attr('y', (r) => c.y(r.spart) - 4)
+        .attr('text-anchor', 'middle').text((r) => d0(r.spart));
+    }
+  }
+
   function drawAll() {
-    drawOktNov();
+    drawHoest();
     drawOktMai();
+    drawSpare();
     drawHeat();
     drawUker();
     drawTemp();

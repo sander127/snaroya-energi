@@ -24,6 +24,7 @@ grunnlast = rows('grunnlast.json')
 sommerlast = rows('sommerlast.json')
 okt_nov = rows('okt_nov.json')
 vaertest = rows('vaertest.json')
+hoest = rows('hoest.json')
 
 MINUS = '−'
 NBSP = ' '
@@ -103,6 +104,59 @@ ctx = dict(
     rsep26=fmt(m('2026/27', 'Sep', 'Rest')), rsep25=fmt(m('2025/26', 'Sep', 'Rest')),
     tokt26=fmt(m('2026/27', 'Okt', 'Total')), tokt25=fmt(m('2025/26', 'Okt', 'Total')),
 )
+
+# ---- Autumn: same dates (1 Oct - 22 Nov) every year ----
+ho = {r['aar']: r for r in hoest}
+h26, h25, h14 = ho[2026], ho[2025], ho[2014]
+h_hist = [ho[y] for y in range(2014, 2026)]
+h_snitt = statistics.mean(r['kwh_dogn'] for r in h_hist)
+h_tsnitt = statistics.mean(r['temp'] for r in h_hist)
+h_vs_snitt, h_vs_fjor, h_vs_14 = chg(h26['kwh_dogn'], h_snitt), chg(h26['kwh_dogn'], h25['kwh_dogn']), chg(h26['kwh_dogn'], h14['kwh_dogn'])
+assert sum(1 for r in h_hist if r['kwh_dogn'] < h26['kwh_dogn']) == 0, 'text says no earlier autumn was lower'
+if h26['temp'] < h_tsnitt - 0.2:
+    h_temp_text = f'Det var dessuten litt kaldere enn vanlig ({fmt(h26["temp"])} °C mot {fmt(h_tsnitt)} °C i snitt), så været forklarer ikke nedgangen.'
+elif h26['temp'] > h_tsnitt + 0.2:
+    h_temp_text = f'Det var litt mildere enn vanlig ({fmt(h26["temp"])} °C mot {fmt(h_tsnitt)} °C i snitt), men været betyr lite for totalen.'
+else:
+    h_temp_text = f'Temperaturen var omtrent som vanlig ({fmt(h26["temp"])} °C).'
+
+
+def hrow(label, key):
+    a, b = ho[2026][key], ho[2025][key]
+    sn = statistics.mean(r[key] for r in h_hist)
+    c = chg(a, sn)
+    return (f'<tr><td>{label}</td><td>{fmt(a, 0)}</td><td>{fmt(b, 0)}</td><td>{fmt(sn, 0)}</td>'
+            f'<td class="{cls(c)}">{pct(c)}</td></tr>')
+
+
+h_rows = '\n'.join([hrow('Oktober (kWh/døgn)', 'okt_kwh'), hrow('1.–22. november (kWh/døgn)', 'nov22_kwh'),
+                     hrow('1. oktober–22. november (kWh/døgn)', 'kwh_dogn')])
+
+# ---- Since 2015 ----
+jm = {}
+for y in range(2014, 2027):
+    s_ = f'{y - 1}/{str(y)[2:]}'
+    jm[y] = sum(m(s_, mon, 'Total') for mon in ('Jan', 'Feb', 'Mar', 'Apr', 'Mai'))
+jm_pre = (jm[2014] + jm[2015]) / 2
+covid = {'2019/20', '2020/21'}
+spart = {r['sesong']: r1415['Total'] - r['Total'] for r in okt_mai if r['sesong'] != '2014/15'}
+cum = sum(v for k, v in spart.items() if k not in covid)
+PRIS = 1.5928  # kr/kWh eks. mva.: spot 146,90 + energiledd 5,00 + elavgift 7,13 + nettleiehåndtering 0,25 øre (faktura okt. 2026)
+spart_naa = spart['2025/26']
+verdi = spart_naa * 1000 * PRIS
+vk_chg = chg(cur['vaerkorr'], r1415['vaerkorr'])
+winters = cum / cur['Total']
+cum_winters = 'nesten tre' if 2.5 <= winters < 3 else fmt(winters, 1)
+ctx.update(
+    h_kwh=fmt(h26['kwh_dogn'], 0), h_mwh=fmt(h26['mwh']), h_snitt=fmt(h_snitt, 0), h25=fmt(h25['kwh_dogn'], 0),
+    h_vs_snitt=b(pct(h_vs_snitt), cls(h_vs_snitt)), h_vs_fjor=b(pct(h_vs_fjor), cls(h_vs_fjor)), h_vs_14=b(pct(h_vs_14), cls(h_vs_14)),
+    h_vs_snitt_plain=pct(h_vs_snitt), h_vs_snitt_cls=cls(h_vs_snitt), h_vs_fjor_plain=pct(h_vs_fjor), h_vs_fjor_cls=cls(h_vs_fjor),
+    h20=fmt(ho[2020]['kwh_dogn'], 0), h_vs_14_plain=pct(h_vs_14), h_vs_14_cls=cls(h_vs_14), h_temp_text=h_temp_text, h_rows=h_rows,
+    jm_pre=fmt(jm_pre), jm26=fmt(jm[2026]), jm_chg=b(pct(chg(jm[2026], jm_pre)), cls(chg(jm[2026], jm_pre))),
+    cum=fmt(round(cum, -1), 0), cum_winters=cum_winters, spart_naa=fmt(spart_naa, 0), pris=fmt(PRIS, 2),
+    verdi=fmt(round(verdi, -4), 0), verdi_mva=fmt(round(verdi * 1.25, -4), 0), vk_chg=pct(vk_chg), vk_cls=cls(vk_chg),
+)
+
 if has_nov:
     nov_para = (f'<p>November 2026 så langt ({o26["nov_dager"]} dager): {b(fmt(o26["nov_kwh_dogn"], 0))} kWh i døgnet, '
                 f'{b(pct(nov_fjor), cls(nov_fjor))} mot november 2025 og {b(pct(nov_vs_snitt), cls(nov_vs_snitt))} mot snittet for 2014–2025, '
@@ -118,7 +172,7 @@ vt_rows = '\n'.join(
 ctx['vt_rows'] = vt_rows
 
 data = dict(okt_mai=okt_mai, maaned=maaned, uker=uker, temperatur=temperatur, grunnlast=grunnlast,
-            sommerlast=sommerlast, okt_nov=okt_nov, antenne=300)
+            sommerlast=sommerlast, okt_nov=okt_nov, hoest=hoest, antenne=300)
 ctx['data_json'] = json.dumps(data, ensure_ascii=False, separators=(',', ':'))
 ctx['d3'] = open(os.path.join(HERE, 'vendor', 'd3.min.js')).read()
 ctx['app_js'] = open(os.path.join(HERE, 'app.js')).read()
