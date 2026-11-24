@@ -202,7 +202,7 @@
       .style('stroke', 'var(--fg)').attr('stroke-width', 1).attr('stroke-dasharray', '2 3');
     c.svg.append('text').attr('class', 'axlab').attr('x', tk + 5).attr('y', c.mt + 10).text('Driften overtatt');
     const cv = x(parseDay('2020-09-01'));
-    c.svg.append('text').attr('class', 'axlab').attr('x', cv).attr('y', c.mt + 10).attr('text-anchor', 'middle').text('Covid, permittert');
+    c.svg.append('text').attr('class', 'axlab').attr('x', cv).attr('y', c.mt + 10).attr('text-anchor', 'middle').text('Covid');
     const dot = c.svg.append('circle').attr('r', 3.5).style('fill', 'var(--c0)').attr('visibility', 'hidden');
     const t = tip(c.el);
     const bis = d3.bisector((r) => r.d).center;
