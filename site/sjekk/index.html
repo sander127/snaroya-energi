@@ -65,15 +65,24 @@ button{font:500 15px Inter,sans-serif;min-height:44px;padding:0 14px;border-radi
 @media(max-width:760px){.how{grid-template-columns:minmax(0,1fr)}}
 .how p{margin:0 0 8px;font-size:15px}
 footer{font-size:13px;color:var(--muted)}
+.tabs{display:inline-flex;border:1px solid var(--rule);border-radius:999px;padding:4px;margin:0 0 22px;gap:4px}
+.tabs a{display:flex;align-items:center;min-height:40px;padding:0 20px;border-radius:999px;color:var(--ink);text-decoration:none;font-weight:600}
+.tabs a[aria-selected=true]{background:var(--teal);color:#fff}
+body[data-mode=privat] [data-mode=bedrift],body[data-mode=bedrift] [data-mode=privat]{display:none!important}
 footer a,.how a{color:var(--teal)}
 @media(prefers-reduced-motion:no-preference){.big{transition:color .3s}}
 </style>
 </head>
-<body>
+<body data-mode="privat">
 <main>
 <section class="band"><div class="wrap">
-  <h1>Betaler du mer enn spotprisen?</h1>
-  <p class="lede">Med en spotprisavtale skal du betale <b>spotprisen time for time pluss påslaget du har avtalt</b>. Last opp timeforbruket ditt, skriv inn prisen fra fakturaen, og se om det stemmer. Filen din blir i nettleseren og sendes ikke noe sted.</p>
+  <nav class="tabs" role="tablist" aria-label="Kundetype">
+    <a href="#privat" role="tab" id="tabPrivat" aria-selected="true">Privat</a>
+    <a href="#bedrift" role="tab" id="tabBedrift" aria-selected="false">Bedrift</a>
+  </nav>
+  <h1>Betaler <span data-mode="privat">du</span><span data-mode="bedrift">dere</span> mer enn spotprisen?</h1>
+  <p class="lede" data-mode="privat">Med en spotprisavtale skal du betale <b>spotprisen time for time pluss påslaget du har avtalt</b>. Last opp timeforbruket ditt, skriv inn prisen fra fakturaen, og se om det stemmer. Filen din blir i nettleseren og sendes ikke noe sted.</p>
+  <p class="lede" data-mode="bedrift">Med en spotavtale skal bedriften betale <b>spotprisen time for time pluss påslaget i kontrakten</b>. Mange av reglene som beskytter privatkunder gjelder ikke for bedrifter, så ekstra kostnader kan ligge inne i prisen uten å stå på en egen linje. Last opp timeforbruket, skriv inn prisen fra fakturaen, og se om det stemmer. Filen blir i nettleseren og sendes ikke noe sted.</p>
 
   <div class="grid">
     <form id="form" autocomplete="off">
@@ -97,12 +106,14 @@ footer a,.how a{color:var(--teal)}
         <div class="drop" id="drop">
           <input type="file" id="fil" accept=".csv,.txt,.tsv,.xlsx,.xls" aria-label="Velg fil med timeforbruk">
           <strong>Slipp en fil her, eller trykk for å velge</strong>
-          <span class="hint">CSV fra Elhub (minside.elhub.no) eller Excel-eksport fra strømselskapet</span>
+          <span class="hint" data-mode="privat">CSV fra Elhub (minside.elhub.no) eller eksport fra strømselskapet</span>
+          <span class="hint" data-mode="bedrift">Timeverdier fra kundeportalen, energioppfølgingen eller Elhub. Har filen flere målere, legges de sammen.</span>
         </div>
         <div class="filemeta" id="filemeta" aria-live="polite"></div>
         <div class="field" id="kolonneFelt" hidden style="margin-top:10px"><label for="kolonne">Kolonne med forbruk</label><select id="kolonne"></select></div>
         <div id="utenFil">
-          <p class="hint" style="margin-top:12px">Uten fil regner vi med et typisk husholdningsforbruk. Det gir et omtrentlig svar.</p>
+          <p class="hint" style="margin-top:12px" data-mode="privat">Uten fil regner vi med et typisk husholdningsforbruk. Det gir et omtrentlig svar.</p>
+          <p class="hint" style="margin-top:12px" data-mode="bedrift">Uten fil regner vi med jevnt forbruk døgnet rundt. Det gir et grovt anslag.</p>
           <div class="row" style="margin-top:8px"><div class="field"><label for="kwh">Forbruk på fakturaen (kWh)</label><input id="kwh" inputmode="decimal" value="1000"></div></div>
         </div>
       </div>
@@ -111,16 +122,19 @@ footer a,.how a{color:var(--teal)}
         <h3><span>3</span>Prisen på fakturaen</h3>
         <div class="row">
           <div class="field"><label for="fakturert">Kraftpris per kWh (øre)</label><input id="fakturert" inputmode="decimal" placeholder="f.eks. 138,95">
-            <p class="hint">Linjen for selve strømmen, ofte kalt «Spotpris» eller avtalenavnet.</p></div>
+            <p class="hint" data-mode="privat">Linjen for selve strømmen, ofte kalt «Spotpris» eller avtalenavnet.</p>
+            <p class="hint" data-mode="bedrift">Prisen per kWh på strømlinjen, for eksempel «Spot Bedrift».</p></div>
           <div class="field"><label for="paaslag">Påslag som er med i den prisen (øre)</label><input id="paaslag" inputmode="decimal" value="0">
-            <p class="hint">Står påslaget på en egen linje, lar du feltet stå på 0.</p></div>
+            <p class="hint" data-mode="privat">Står påslaget på en egen linje, lar du feltet stå på 0.</p>
+            <p class="hint" data-mode="bedrift">Se kontrakten. Er påslaget bakt inn i prisen på fakturaen, skriver dere det her.</p></div>
         </div>
         <div class="row" style="margin-top:12px">
           <div class="field"><span class="lbl" id="mvaLbl">Prisene på fakturaen er</span>
             <div class="seg" role="radiogroup" aria-labelledby="mvaLbl">
               <label><input type="radio" name="mva" value="1" checked>med 25 % mva.</label>
               <label><input type="radio" name="mva" value="0">uten mva.</label>
-            </div><p class="hint">Privatkunder får som regel priser med mva. Bedrifter og husholdninger i Nord-Norge uten mva. velger «uten mva.».</p></div>
+            </div><p class="hint" data-mode="privat">Privatkunder får som regel priser med mva. Betaler du ikke mva. på strøm, som i deler av Nord-Norge, velger du «uten mva.».</p>
+            <p class="hint" data-mode="bedrift">Bedriftsfakturaer viser som regel priser uten mva.</p></div>
           <div class="field"><label for="aarsforbruk">Årsforbruk (kWh, valgfritt)</label><input id="aarsforbruk" inputmode="decimal" placeholder="f.eks. 16 000">
             <p class="hint">Gir et anslag på hva avviket utgjør i året.</p></div>
         </div>
@@ -143,7 +157,8 @@ footer a,.how a{color:var(--teal)}
 </div></section>
 
 <section class="band" style="padding-top:0"><div class="wrap how">
-  <div><h2>Hent timeforbruket</h2><p>Logg inn på <a href="https://minside.elhub.no">minside.elhub.no</a> med BankID, åpne måleverdiene for målepunktet ditt, velg måneden og last ned forbruksverdiene. Mange strømselskaper har også eksport i appen eller på Min side.</p></div>
+  <div><h2>Hent timeforbruket</h2><p data-mode="privat">Logg inn på <a href="https://minside.elhub.no">minside.elhub.no</a> med BankID, åpne måleverdiene for målepunktet ditt, velg måneden og last ned forbruksverdiene. Mange strømselskaper har også eksport i appen eller på Min side.</p>
+  <p data-mode="bedrift">Timeverdier finnes som regel i strømleverandørens kundeportal, i energioppfølgingssystemet eller hos nettselskapet. Excel- og CSV-filer med én kolonne per måler fungerer: forbrukskolonnene legges sammen, og kostnad og CO₂ hoppes over.</p></div>
   <div><h2>Slik regner vi</h2><p>Hver time ganges forbruket ditt med spotprisen den timen. Summen delt på forbruket gir din vektede spotpris. Kvarterspriser slås sammen til timepris, slik de fleste strømselskaper fakturerer.</p></div>
   <div><h2>Hva er normalt?</h2><p>Under 0,5 øre i avvik er avrunding. Mer enn det bør strømselskapet kunne forklare. Ta kontakt og be om en spesifikasjon, og sammenlign avtaler på <a href="https://www.strompris.no">strompris.no</a>.</p></div>
 </div></section>
@@ -284,12 +299,12 @@ const PROFIL = {
   hverdag: [.62, .58, .56, .56, .58, .66, .86, 1.12, 1.18, 1.02, .94, .92, .92, .9, .9, .96, 1.1, 1.3, 1.36, 1.3, 1.22, 1.1, .92, .74],
   helg: [.66, .6, .58, .56, .56, .58, .66, .8, .98, 1.12, 1.16, 1.14, 1.1, 1.06, 1.02, 1.04, 1.12, 1.26, 1.32, 1.28, 1.2, 1.1, .94, .76]
 };
-function profileHours(month, prices, totalKwh) {
+function profileHours(month, prices, totalKwh, flat) {
   const w = new Map(); let sum = 0;
   for (const t of prices.keys()) {
     if (osloMonth(t) !== month) continue;
     const loc = new Date(t + osloOffset(t) * H); const dow = loc.getUTCDay();
-    const x = (dow === 0 || dow === 6 ? PROFIL.helg : PROFIL.hverdag)[loc.getUTCHours()];
+    const x = flat ? 1 : (dow === 0 || dow === 6 ? PROFIL.helg : PROFIL.hverdag)[loc.getUTCHours()];
     w.set(t, x); sum += x;
   }
   const hours = new Map(); for (const [t, x] of w) hours.set(t, totalKwh * x / sum);
@@ -322,7 +337,19 @@ const fmt = (x, d = 2) => Number.isFinite(x) ? x.toLocaleString('nb-NO', { minim
 const fmtKr = x => Number.isFinite(x) ? Math.round(x).toLocaleString('nb-NO') + ' kr' : '–';
 const MND = ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'desember'];
 const label = m => MND[+m.slice(5) - 1] + ' ' + m.slice(0, 4);
-const state = { parsed: null, cache: new Map(), run: 0 };
+const state = { parsed: null, cache: new Map(), run: 0, mode: 'privat' };
+const MODES = { privat: { mva: '1', kwh: '1000', aar: 'f.eks. 16 000', per: 10000 }, bedrift: { mva: '0', kwh: '50000', aar: 'f.eks. 800 000', per: 100000 } };
+function setMode(mode, first) {
+  if (!MODES[mode]) mode = 'privat';
+  const prev = state.mode; state.mode = mode; document.body.dataset.mode = mode;
+  $('tabPrivat').setAttribute('aria-selected', mode === 'privat'); $('tabBedrift').setAttribute('aria-selected', mode === 'bedrift');
+  const m = MODES[mode];
+  if (first || prev !== mode) {
+    document.querySelector(`input[name=mva][value="${m.mva}"]`).checked = true;
+    if (!$('kwh').value || $('kwh').value === MODES[prev].kwh) $('kwh').value = m.kwh;
+    $('aarsforbruk').placeholder = m.aar;
+  }
+}
 
 function monthsBack(n) {
   const now = Date.now(); const cur = osloMonth(now); let [y, m] = cur.split('-').map(Number); const out = [];
@@ -373,7 +400,7 @@ async function update() {
   const prices = await loadPrices(f.area, f.month);
   if (run !== state.run) return;
   if (!prices.size) { setEmpty('Fant ikke spotpriser for denne måneden ennå.'); return; }
-  const hours = state.parsed ? toHours(state.parsed, selectedCols()) : profileHours(f.month, prices, f.kwhInput > 0 ? f.kwhInput : 1000);
+  const hours = state.parsed ? toHours(state.parsed, selectedCols()) : profileHours(f.month, prices, f.kwhInput > 0 ? f.kwhInput : 1000, state.mode === 'bedrift');
   const r = compute(hours, prices, f.month);
   if (!(r.kwh > 0)) { setEmpty(state.parsed ? 'Filen har ikke forbruk i denne måneden.' : 'Skriv inn forbruket i kWh.'); return; }
   const spot = r.weighted * f.mva, skulle = spot + f.paaslag;
@@ -381,7 +408,7 @@ async function update() {
   $('rPaaslag').textContent = fmt(f.paaslag) + ' øre'; $('rSkulle').textContent = fmt(skulle) + ' øre';
   const kwhMonth = state.parsed ? r.kwh : f.kwhInput;
   const notes = [];
-  notes.push(state.parsed ? `${fmt(r.total, 0)} kWh i ${label(f.month)} fra filen din.` : 'Omtrentlig: regnet med et typisk husholdningsforbruk. Last opp timeforbruket for et sikkert svar.');
+  notes.push(state.parsed ? `${fmt(r.total, 0)} kWh i ${label(f.month)} fra filen.` : state.mode === 'bedrift' ? 'Grovt anslag: regnet med jevnt forbruk døgnet rundt. Last opp timeforbruket for et sikkert svar.' : 'Omtrentlig: regnet med et typisk husholdningsforbruk. Last opp timeforbruket for et sikkert svar.');
   if (r.missing > 0.5) notes.push(`${fmt(r.missing, 0)} kWh mangler spotpris og er holdt utenfor.`);
   if (r.priceHours < 24 * 27) notes.push(`Spotprisene dekker bare ${Math.round(r.priceHours / 24)} dager av måneden.`);
   $('rNote').textContent = notes.join(' ');
@@ -395,10 +422,11 @@ async function update() {
   const cls = ekstra > 2 ? 'bad' : ekstra > 0.5 ? 'bad' : ekstra < -0.5 ? 'good' : 'good';
   $('rBig').className = 'big ' + cls;
   $('rVerdict').className = 'verdict ' + cls;
-  $('rVerdict').textContent = ekstra > 2 ? 'Du betaler tydelig mer enn spotpris og påslag.' : ekstra > 0.5 ? 'Du betaler litt mer enn spotpris og påslag.' : ekstra < -0.5 ? 'Du betaler mindre enn spotpris og påslag.' : 'Det stemmer. Avviket er bare avrunding.';
+  const du = state.mode === 'bedrift' ? 'Dere' : 'Du';
+  $('rVerdict').textContent = ekstra > 2 ? `${du} betaler tydelig mer enn spotpris og påslag.` : ekstra > 0.5 ? `${du} betaler litt mer enn spotpris og påslag.` : ekstra < -0.5 ? `${du} betaler mindre enn spotpris og påslag.` : 'Det stemmer. Avviket er bare avrunding.';
   const krMnd = ekstra * kwhMonth / 100; const aar = Number.isFinite(f.aar) && f.aar > 0 ? f.aar : null;
   $('rKr').innerHTML = Math.abs(ekstra) > 0.5
-    ? `${ekstra > 0 ? 'Ekstra' : 'Mindre'} i ${label(f.month)}: <span class="v">${fmtKr(Math.abs(krMnd))}</span>` + (aar ? ` · i året: <span class="v">${fmtKr(Math.abs(ekstra * aar / 100))}</span>` : ` · per 10 000 kWh: <span class="v">${fmtKr(Math.abs(ekstra * 100))}</span>`)
+    ? `${ekstra > 0 ? 'Ekstra' : 'Mindre'} i ${label(f.month)}: <span class="v">${fmtKr(Math.abs(krMnd))}</span>` + (aar ? ` · i året: <span class="v">${fmtKr(Math.abs(ekstra * aar / 100))}</span>` : ` · per ${MODES[state.mode].per.toLocaleString('nb-NO')} kWh: <span class="v">${fmtKr(Math.abs(ekstra * MODES[state.mode].per / 100))}</span>`)
     : '';
 }
 function setEmpty(msg) {
@@ -454,6 +482,8 @@ let timer; $('form').addEventListener('input', () => { clearTimeout(timer); time
 $('form').addEventListener('change', update);
 try { const a = localStorage.getItem('omrade'); if (a) $('omrade').value = a; $('omrade').addEventListener('change', () => { try { localStorage.setItem('omrade', $('omrade').value); } catch (e) {} }); } catch (e) {}
 const ms = monthsBack(14); fillMonths(ms, ms[1]);
+setMode(location.hash.slice(1), true);
+window.addEventListener('hashchange', () => { setMode(location.hash.slice(1)); update(); });
 update();
 }
 </script>
