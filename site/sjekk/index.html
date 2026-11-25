@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sjekk strømregningen</title>
+<meta name="description" content="Betaler du mer enn spotprisen og påslaget du har avtalt? Last opp timeforbruket ditt og sjekk regningen. Alt regnes ut i nettleseren din.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Libre+Caslon+Text:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: a newspaper money desk – calm, exact, no hype.
+   IDEA: a corrected invoice line, like a receipt a careful accountant hands back.
+   PICTURE: the receipt itself, with the extra øre per kWh printed large.
+   COLOUR and TYPE: white and ink, deep teal for spot, one red for the overcharge; Libre Caslon Text + Inter.
+   LAYOUT: title across the top, inputs in two-thirds, the receipt as a ruled column of figures. */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#0d1416);--ink:light-dark(#14161a,#e6ecec);--muted:light-dark(#5b6168,#9aa7a9);--rule:light-dark(#d9dcdf,#26333a);--teal:light-dark(#0b5d63,#5fb7bd);--panel:light-dark(#f3f6f6,#132024);--red:light-dark(#b3261e,#ff8a80);--ok:light-dark(#1d6b3a,#7fd19a)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Inter,system-ui,sans-serif;overflow-x:clip}
+.band{padding:clamp(28px,4vw,56px) max(5vw,16px)}
+.wrap{max-width:1180px;margin:0 auto}
+h1{font:400 clamp(32px,4.6vw,50px)/1.05 "Libre Caslon Text",Georgia,serif;margin:0 0 12px;text-wrap:balance}
+h2{font:400 26px/1.15 "Libre Caslon Text",Georgia,serif;margin:0 0 10px}
+.lede{max-width:64ch;color:var(--muted);margin:0}
+.lede b{color:var(--ink);font-weight:600}
+.grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:clamp(20px,3vw,44px);margin-top:28px;align-items:start}
+@media(max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}.receipt{order:-1}}
+.step{border-top:1px solid var(--rule);padding:18px 0 6px}
+.step h3{font:600 16px/1.3 Inter,sans-serif;margin:0 0 10px}
+.step h3 span{color:var(--teal);margin-right:6px}
+.row{display:flex;flex-wrap:wrap;gap:12px 16px}
+.field{display:flex;flex-direction:column;gap:4px;flex:1 1 190px}
+label,.lbl{font-size:14px;font-weight:500}
+.hint{font-size:13px;color:var(--muted);margin:2px 0 0}
+input,select{font:16px Inter,sans-serif;color:var(--ink);background:var(--bg);border:1px solid var(--rule);border-radius:6px;min-height:44px;padding:8px 10px;width:100%}
+input:focus-visible,select:focus-visible,button:focus-visible,.drop:focus-within{outline:2px solid var(--teal);outline-offset:2px}
+.seg{display:flex;border:1px solid var(--rule);border-radius:6px;overflow:hidden}
+.seg label{flex:1;display:flex;align-items:center;justify-content:center;min-height:44px;cursor:pointer;font-weight:500;padding:0 10px;text-align:center}
+.seg input{position:absolute;opacity:0;width:1px;height:1px}
+.seg label:has(input:checked){background:var(--teal);color:#fff}
+.drop{border:1.5px dashed var(--rule);border-radius:8px;padding:18px;text-align:center;background:var(--panel);cursor:pointer;position:relative}
+.drop.over{border-color:var(--teal)}
+.drop input{position:absolute;inset:0;opacity:0;cursor:pointer;min-height:0}
+.drop strong{display:block}
+.filemeta{font-size:14px;margin-top:10px}
+.filemeta.err{color:var(--red)}
+button{font:500 15px Inter,sans-serif;min-height:44px;padding:0 14px;border-radius:6px;border:1px solid var(--rule);background:var(--bg);color:var(--ink);cursor:pointer}
+.linkbtn{border:0;background:none;color:var(--teal);text-decoration:underline;padding:0;min-height:0;font-size:14px}
+.receipt{background:var(--panel);border-top:4px solid var(--teal);padding:22px 22px 18px;position:sticky;top:16px}
+@media(max-width:860px){.receipt{position:static}}
+.receipt .head{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--muted);border-bottom:1px solid var(--rule);padding-bottom:8px}
+.line{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:9px 0;border-bottom:1px solid var(--rule)}
+.line .v{font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:500}
+.line.sum{border-bottom:2px solid var(--ink)}
+.line.sub{font-size:13px;color:var(--muted);padding:4px 0 9px}
+.big{margin:16px 0 4px;font:400 clamp(40px,6vw,60px)/1 "Libre Caslon Text",Georgia,serif;font-variant-numeric:tabular-nums;white-space:nowrap}
+.big small{font:500 16px Inter,sans-serif;color:var(--muted);margin-left:6px}
+.verdict{font-weight:600;margin:6px 0 8px}
+.bad{color:var(--red)}.good{color:var(--ok)}.neutral{color:var(--muted)}
+.kr{font-size:15px;margin:0}
+.kr .v{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+.note{font-size:13px;color:var(--muted);margin:10px 0 0}
+.how{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;border-top:1px solid var(--rule);padding-top:22px}
+@media(max-width:760px){.how{grid-template-columns:minmax(0,1fr)}}
+.how p{margin:0 0 8px;font-size:15px}
+footer{font-size:13px;color:var(--muted)}
+footer a,.how a{color:var(--teal)}
+@media(prefers-reduced-motion:no-preference){.big{transition:color .3s}}
+</style>
+</head>
+<body>
+<main>
+<section class="band"><div class="wrap">
+  <h1>Betaler du mer enn spotprisen?</h1>
+  <p class="lede">Med en spotprisavtale skal du betale <b>spotprisen time for time pluss påslaget du har avtalt</b>. Last opp timeforbruket ditt, skriv inn prisen fra fakturaen, og se om det stemmer. Filen din blir i nettleseren og sendes ikke noe sted.</p>
+
+  <div class="grid">
+    <form id="form" autocomplete="off">
+      <div class="step">
+        <h3><span>1</span>Hvor og når</h3>
+        <div class="row">
+          <div class="field"><label for="omrade">Prisområde</label>
+            <select id="omrade">
+              <option value="NO1">NO1 – Østlandet</option>
+              <option value="NO2">NO2 – Sørlandet og Sørvestlandet</option>
+              <option value="NO3">NO3 – Midt-Norge</option>
+              <option value="NO4">NO4 – Nord-Norge</option>
+              <option value="NO5">NO5 – Vestlandet</option>
+            </select></div>
+          <div class="field"><label for="maaned">Måneden på fakturaen</label><select id="maaned"></select></div>
+        </div>
+      </div>
+
+      <div class="step">
+        <h3><span>2</span>Timeforbruket ditt</h3>
+        <div class="drop" id="drop">
+          <input type="file" id="fil" accept=".csv,.txt,.tsv,.xlsx,.xls" aria-label="Velg fil med timeforbruk">
+          <strong>Slipp en fil her, eller trykk for å velge</strong>
+          <span class="hint">CSV fra Elhub (minside.elhub.no) eller Excel-eksport fra strømselskapet</span>
+        </div>
+        <div class="filemeta" id="filemeta" aria-live="polite"></div>
+        <div class="field" id="kolonneFelt" hidden style="margin-top:10px"><label for="kolonne">Kolonne med forbruk</label><select id="kolonne"></select></div>
+        <div id="utenFil">
+          <p class="hint" style="margin-top:12px">Uten fil regner vi med et typisk husholdningsforbruk. Det gir et omtrentlig svar.</p>
+          <div class="row" style="margin-top:8px"><div class="field"><label for="kwh">Forbruk på fakturaen (kWh)</label><input id="kwh" inputmode="decimal" value="1000"></div></div>
+        </div>
+      </div>
+
+      <div class="step">
+        <h3><span>3</span>Prisen på fakturaen</h3>
+        <div class="row">
+          <div class="field"><label for="fakturert">Kraftpris per kWh (øre)</label><input id="fakturert" inputmode="decimal" placeholder="f.eks. 138,95">
+            <p class="hint">Linjen for selve strømmen, ofte kalt «Spotpris» eller avtalenavnet.</p></div>
+          <div class="field"><label for="paaslag">Påslag som er med i den prisen (øre)</label><input id="paaslag" inputmode="decimal" value="0">
+            <p class="hint">Står påslaget på en egen linje, lar du feltet stå på 0.</p></div>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <div class="field"><span class="lbl" id="mvaLbl">Prisene på fakturaen er</span>
+            <div class="seg" role="radiogroup" aria-labelledby="mvaLbl">
+              <label><input type="radio" name="mva" value="1" checked>med 25 % mva.</label>
+              <label><input type="radio" name="mva" value="0">uten mva.</label>
+            </div><p class="hint">Privatkunder får som regel priser med mva. Bedrifter og husholdninger i Nord-Norge uten mva. velger «uten mva.».</p></div>
+          <div class="field"><label for="aarsforbruk">Årsforbruk (kWh, valgfritt)</label><input id="aarsforbruk" inputmode="decimal" placeholder="f.eks. 16 000">
+            <p class="hint">Gir et anslag på hva avviket utgjør i året.</p></div>
+        </div>
+      </div>
+    </form>
+
+    <aside class="receipt" aria-live="polite">
+      <div class="head"><span id="rHead">Spot NO1</span><span id="rMva">med mva.</span></div>
+      <div class="line"><span>Spotpris vektet etter forbruket ditt</span><span class="v" id="rSpot">–</span></div>
+      <div class="line sub"><span>Vanlig månedssnitt til sammenligning</span><span class="v" id="rSnitt">–</span></div>
+      <div class="line"><span>+ Avtalt påslag i prisen</span><span class="v" id="rPaaslag">–</span></div>
+      <div class="line sum"><span>= Det du skulle betalt</span><span class="v" id="rSkulle">–</span></div>
+      <div class="line"><span>Fakturert</span><span class="v" id="rFakt">–</span></div>
+      <div class="big" id="rBig">–<small>øre/kWh</small></div>
+      <p class="verdict neutral" id="rVerdict">Skriv inn prisen fra fakturaen.</p>
+      <p class="kr" id="rKr"></p>
+      <p class="note" id="rNote"></p>
+    </aside>
+  </div>
+</div></section>
+
+<section class="band" style="padding-top:0"><div class="wrap how">
+  <div><h2>Hent timeforbruket</h2><p>Logg inn på <a href="https://minside.elhub.no">minside.elhub.no</a> med BankID, åpne måleverdiene for målepunktet ditt, velg måneden og last ned forbruksverdiene. Mange strømselskaper har også eksport i appen eller på Min side.</p></div>
+  <div><h2>Slik regner vi</h2><p>Hver time ganges forbruket ditt med spotprisen den timen. Summen delt på forbruket gir din vektede spotpris. Kvarterspriser slås sammen til timepris, slik de fleste strømselskaper fakturerer.</p></div>
+  <div><h2>Hva er normalt?</h2><p>Under 0,5 øre i avvik er avrunding. Mer enn det bør strømselskapet kunne forklare. Ta kontakt og be om en spesifikasjon, og sammenlign avtaler på <a href="https://www.strompris.no">strompris.no</a>.</p></div>
+</div></section>
+
+<footer class="band" style="padding-top:0"><div class="wrap" style="border-top:1px solid var(--rule);padding-top:16px">
+  <a href="https://www.hvakosterstrommen.no">Strømpriser levert av Hva koster strømmen.no</a> (day-ahead-priser fra ENTSO-E, eks. mva.). Verktøyet gir et anslag og er ikke en juridisk vurdering av avtalen din.
+</div></footer>
+</main>
+
+<script>
+{
+/*CORE-START*/
+const H = 3600e3;
+function lastSunday(y, m) { const d = new Date(Date.UTC(y, m + 1, 0)); return d.getUTCDate() - d.getUTCDay(); }
+function osloOffset(ms) { const y = new Date(ms).getUTCFullYear(); const s = Date.UTC(y, 2, lastSunday(y, 2), 1), e = Date.UTC(y, 9, lastSunday(y, 9), 1); return ms >= s && ms < e ? 2 : 1; }
+function osloToUTC(y, mo, d, h, mi) { const g = Date.UTC(y, mo, d, h, mi) - 2 * H; return osloOffset(g) === 2 ? g : Date.UTC(y, mo, d, h, mi) - H; }
+function isAmbiguous(ms) { return osloOffset(ms) === 2 && osloOffset(ms + H) === 1; }
+function osloMonth(ms) { const d = new Date(ms + osloOffset(ms) * H); return d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0'); }
+function parseNum(s) {
+  if (s == null) return NaN; s = String(s).trim().replace(/^"|"$/g, '').replace(/[\s  ]/g, '');
+  if (!s || !/^[-+]?[\d.,]+$/.test(s)) return NaN;
+  if (s.includes(',') && s.includes('.')) s = s.lastIndexOf(',') > s.lastIndexOf('.') ? s.replace(/\./g, '').replace(',', '.') : s.replace(/,/g, '');
+  else if (s.includes(',')) s = s.replace(',', '.');
+  return Number(s);
+}
+// Returns {t: utc ms} for full stamps, {local:[y,mo,d,h,mi]} for wall time, {date:[y,mo,d]} for date only, {time:[h,mi]} for time only
+function parseStamp(raw) {
+  const s = String(raw).trim().replace(/^"|"$/g, '');
+  let m = s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::\d{2}(?:\.\d+)?)?\s*(Z|[+-]\d{2}:?\d{2})?)?/);
+  if (m) {
+    const [, Y, M, D, h, mi, tz] = m;
+    if (h == null) return { date: [+Y, +M - 1, +D] };
+    if (tz) return { t: Date.parse(`${Y}-${M}-${D}T${h}:${mi}:00${tz === 'Z' ? 'Z' : tz.length === 5 ? tz.slice(0, 3) + ':' + tz.slice(3) : tz}`) };
+    return { local: [+Y, +M - 1, +D, +h, +mi] };
+  }
+  m = s.match(/^(\d{1,2})[./](\d{1,2})[./](\d{4})(?:[ T,]+(\d{1,2})[:.](\d{2}))?/);
+  if (m) return m[4] == null ? { date: [+m[3], +m[2] - 1, +m[1]] } : { local: [+m[3], +m[2] - 1, +m[1], +m[4], +m[5]] };
+  m = s.match(/^(\d{1,2}):(\d{2})(?::\d{2})?(?:\s*[-–]\s*\d{1,2}[:.]\d{2})?$/) || s.match(/^(\d{1,2})\.(\d{2})\s*[-–]\s*\d{1,2}\.\d{2}$/);
+  if (m) return { time: [+m[1], +m[2]] };
+  m = s.match(/^(\d{1,2})\s*[-–]\s*\d{1,2}$/);
+  if (m) return { time: [+m[1], 0] };
+  return null;
+}
+// CSV with quoted fields (which may hold the separator or line breaks)
+function parseCSV(text, sep) {
+  const rows = []; let row = [], cur = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) { if (c === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += c; }
+    else if (c === '"') q = true;
+    else if (c === sep) { row.push(cur.trim()); cur = ''; }
+    else if (c === '\n' || c === '\r') { if (c === '\r' && text[i + 1] === '\n') i++; row.push(cur.trim()); cur = ''; if (row.some(x => x !== '')) rows.push(row); row = []; }
+    else cur += c;
+  }
+  row.push(cur.trim()); if (row.some(x => x !== '')) rows.push(row);
+  return rows;
+}
+function detectSep(text) {
+  const sample = text.slice(0, 20000); let best = ';', bestScore = -1;
+  for (const sep of [';', '\t', ',']) {
+    const counts = parseCSV(sample, sep).slice(0, 40).map(r => r.length).filter(n => n > 1);
+    if (!counts.length) continue;
+    const freq = new Map(); for (const n of counts) freq.set(n, (freq.get(n) || 0) + 1);
+    const [mode, hits] = [...freq].sort((a, b) => b[1] - a[1] || b[0] - a[0])[0];
+    const score = hits * 10 + mode + (sep === ';' ? 0.5 : 0);
+    if (score > bestScore) { bestScore = score; best = sep; }
+  }
+  return best;
+}
+const ENERGY = /kwh|forbruk|volum|mengde|energi|verdi|consumption|quantity|usage/i;
+const NOT_ENERGY = /kostnad|pris|co2|co₂|kr\b|nok|øre|temperatur|cop/i;
+function parseConsumption(text) {
+  text = text.replace(/^﻿/, '');
+  if (!text.trim()) throw new Error('Filen er tom.');
+  return parseRows(parseCSV(text, detectSep(text)));
+}
+// rows: array of arrays of cell text. Returns {stamps:[utc ms], cols:[{name, values}], intervalMin}
+function parseRows(rows) {
+  rows = rows.map(r => r.map(x => (x == null ? '' : String(x)).trim()));
+  let header = null; const data = [];
+  for (const r of rows) {
+    let ts = null, used = new Set();
+    for (let i = 0; i < r.length && ts == null; i++) {
+      const p = parseStamp(r[i]); if (!p) continue;
+      if (p.t != null) { ts = { t: p.t }; used.add(i); }
+      else if (p.local) { ts = { local: p.local }; used.add(i); }
+      else if (p.date) {
+        const nx = parseStamp(r[i + 1] || '');
+        if (nx && nx.time) { ts = { local: [...p.date, ...nx.time] }; used.add(i); used.add(i + 1); }
+        else { ts = { local: [...p.date, 0, 0], dateOnly: true }; used.add(i); }
+      }
+    }
+    if (ts == null) { if (!data.length) header = r; continue; }
+    data.push({ ts, cells: r, used });
+  }
+  if (data.length < 2) throw new Error('Fant ingen rader med dato og tid i filen.');
+  if (data.every(d => d.ts.dateOnly)) throw new Error('Filen har bare døgnverdier. Du trenger timeverdier.');
+  const width = Math.max(...data.map(d => d.cells.length));
+  const cols = [];
+  for (let c = 0; c < width; c++) {
+    if (data.some(d => d.used.has(c))) continue;
+    const vals = data.map(d => parseNum(d.cells[c]));
+    const ok = vals.filter(v => Number.isFinite(v)).length;
+    if (ok < data.length * 0.8) continue;
+    const name = (header && header[c] ? header[c].replace(/\s+/g, ' ').trim() : '') || 'Kolonne ' + (c + 1);
+    if (/målepunkt|maalepunkt|måler|meter|\bid\b|kunde|gsrn/i.test(name) || vals.every(v => !Number.isFinite(v) || Math.abs(v) >= 1e8)) continue;
+    cols.push({ name, values: vals.map(v => Number.isFinite(v) ? v : 0) });
+  }
+  if (!cols.length) throw new Error('Fant ingen kolonne med tall i filen.');
+  const stamps = []; let prev = -Infinity;
+  for (const d of data) {
+    let t = d.ts.t != null ? d.ts.t : osloToUTC(...d.ts.local);
+    if (d.ts.t == null && t <= prev && isAmbiguous(t)) t += H;
+    stamps.push(t); prev = Math.max(prev, t);
+  }
+  const diffs = []; for (let i = 1; i < stamps.length; i++) { const x = stamps[i] - stamps[i - 1]; if (x > 0) diffs.push(x); }
+  diffs.sort((a, b) => a - b);
+  const step = diffs.length ? diffs[Math.floor(diffs.length / 2)] / 60000 : 60;
+  return { stamps, cols, intervalMin: step };
+}
+function defaultColumns(cols) {
+  const energy = cols.map((c, i) => [c, i]).filter(([c]) => ENERGY.test(c.name) && !NOT_ENERGY.test(c.name)).map(([, i]) => i);
+  if (energy.length) return energy;
+  const notOther = cols.map((c, i) => [c, i]).filter(([c]) => !NOT_ENERGY.test(c.name)).map(([, i]) => i);
+  return [notOther.length ? notOther[notOther.length - 1] : cols.length - 1];
+}
+function toHours(parsed, colIdx) {
+  const hours = new Map();
+  parsed.stamps.forEach((t, r) => {
+    const h = Math.floor(t / H) * H;
+    let v = 0; for (const c of colIdx) v += parsed.cols[c].values[r];
+    hours.set(h, (hours.get(h) || 0) + v);
+  });
+  return hours;
+}
+// Typical Norwegian household day profile (relative weights per hour, weekday and weekend)
+const PROFIL = {
+  hverdag: [.62, .58, .56, .56, .58, .66, .86, 1.12, 1.18, 1.02, .94, .92, .92, .9, .9, .96, 1.1, 1.3, 1.36, 1.3, 1.22, 1.1, .92, .74],
+  helg: [.66, .6, .58, .56, .56, .58, .66, .8, .98, 1.12, 1.16, 1.14, 1.1, 1.06, 1.02, 1.04, 1.12, 1.26, 1.32, 1.28, 1.2, 1.1, .94, .76]
+};
+function profileHours(month, prices, totalKwh) {
+  const w = new Map(); let sum = 0;
+  for (const t of prices.keys()) {
+    if (osloMonth(t) !== month) continue;
+    const loc = new Date(t + osloOffset(t) * H); const dow = loc.getUTCDay();
+    const x = (dow === 0 || dow === 6 ? PROFIL.helg : PROFIL.hverdag)[loc.getUTCHours()];
+    w.set(t, x); sum += x;
+  }
+  const hours = new Map(); for (const [t, x] of w) hours.set(t, totalKwh * x / sum);
+  return hours;
+}
+// prices: Map utc-hour-ms -> øre/kWh eks. mva.
+function compute(hours, prices, month) {
+  let kwh = 0, cost = 0, matched = 0, missing = 0, total = 0, sSum = 0, sN = 0;
+  for (const [t, p] of prices) if (osloMonth(t) === month && p != null) { sSum += p; sN++; }
+  for (const [t, e] of hours) {
+    if (osloMonth(t) !== month) continue;
+    total += e; const p = prices.get(t);
+    if (p == null) { missing += e; continue; }
+    kwh += e; cost += e * p; matched++;
+  }
+  return { kwh, total, missing, matched, weighted: kwh > 0 ? cost / kwh : NaN, simple: sN ? sSum / sN : NaN, priceHours: sN };
+}
+function hourlyFromApi(list) {
+  const acc = new Map();
+  for (const x of list) {
+    const t = Math.floor(Date.parse(x.time_start) / H) * H;
+    const a = acc.get(t) || [0, 0]; a[0] += x.NOK_per_kWh * 100; a[1]++; acc.set(t, a);
+  }
+  const out = new Map(); for (const [t, [s, n]] of acc) out.set(t, s / n); return out;
+}
+/*CORE-END*/
+
+const $ = id => document.getElementById(id);
+const fmt = (x, d = 2) => Number.isFinite(x) ? x.toLocaleString('nb-NO', { minimumFractionDigits: d, maximumFractionDigits: d }) : '–';
+const fmtKr = x => Number.isFinite(x) ? Math.round(x).toLocaleString('nb-NO') + ' kr' : '–';
+const MND = ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'desember'];
+const label = m => MND[+m.slice(5) - 1] + ' ' + m.slice(0, 4);
+const state = { parsed: null, cache: new Map(), run: 0 };
+
+function monthsBack(n) {
+  const now = Date.now(); const cur = osloMonth(now); let [y, m] = cur.split('-').map(Number); const out = [];
+  for (let i = 0; i < n; i++) { out.push(`${y}-${String(m).padStart(2, '0')}`); m--; if (!m) { m = 12; y--; } }
+  return out;
+}
+function fillMonths(list, keep) {
+  const sel = $('maaned'); const prev = keep || sel.value;
+  sel.innerHTML = list.map(m => `<option value="${m}">${label(m)}</option>`).join('');
+  sel.value = list.includes(prev) ? prev : list[0];
+}
+async function getJson(url) { const r = await fetch(url, { cache: 'no-cache' }); if (!r.ok) throw new Error(r.status); return r.json(); }
+async function loadPrices(area, month) {
+  const key = area + '/' + month; if (state.cache.has(key)) return state.cache.get(key);
+  let prices = new Map();
+  try {
+    const j = await getJson(`data/priser/${area}/${month}.json`);
+    j.timer.forEach((p, i) => { if (p != null) prices.set(j.start * 1000 + i * H, p); });
+  } catch (e) {
+    const [y, m] = month.split('-').map(Number); const days = new Date(Date.UTC(y, m, 0)).getUTCDate();
+    const dates = []; for (let d = 1; d <= days; d++) dates.push(`${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`);
+    const today = osloMonth(Date.now()) === month ? new Date(Date.now() + osloOffset(Date.now()) * H).getUTCDate() + 1 : days;
+    const wanted = dates.slice(0, today);
+    // 1) the site's own price API, if it has one; 2) hvakosterstrommen.no directly
+    let res = await Promise.allSettled(wanted.map(d => getJson(`/api/priser?dato=${d}&omrade=${area}`)));
+    if (res.some(r => r.status === 'fulfilled' && r.value.priser)) {
+      for (const r of res) if (r.status === 'fulfilled' && r.value.priser) for (const [t, p] of hourlyFromApi(r.value.priser.map(x => ({ time_start: x.start, NOK_per_kWh: x.ore_per_kwh / 100 })))) prices.set(t, p);
+    } else {
+      res = await Promise.allSettled(wanted.map(d => getJson(`https://www.hvakosterstrommen.no/api/v1/prices/${d.slice(0, 4)}/${d.slice(5)}_${area}.json`)));
+      for (const r of res) if (r.status === 'fulfilled') for (const [t, p] of hourlyFromApi(r.value)) prices.set(t, p);
+    }
+  }
+  if (prices.size) state.cache.set(key, prices);
+  return prices;
+}
+
+function readForm() {
+  const mva = document.querySelector('input[name=mva]:checked').value === '1' ? 1.25 : 1;
+  return { area: $('omrade').value, month: $('maaned').value, faktura: parseNum($('fakturert').value), paaslag: parseNum($('paaslag').value) || 0,
+    mva, kwhInput: parseNum($('kwh').value), aar: parseNum($('aarsforbruk').value) };
+}
+function selectedCols() { return [...$('kolonne').selectedOptions].length && $('kolonne').value !== 'sum' ? [+$('kolonne').value] : state.sumCols; }
+
+async function update() {
+  const run = ++state.run; const f = readForm();
+  $('rHead').textContent = `Spot ${f.area} · ${label(f.month)}`; $('rMva').textContent = f.mva > 1 ? 'med mva.' : 'uten mva.';
+  $('rVerdict').textContent = 'Henter spotpriser …'; $('rVerdict').className = 'verdict neutral';
+  const prices = await loadPrices(f.area, f.month);
+  if (run !== state.run) return;
+  if (!prices.size) { setEmpty('Fant ikke spotpriser for denne måneden ennå.'); return; }
+  const hours = state.parsed ? toHours(state.parsed, selectedCols()) : profileHours(f.month, prices, f.kwhInput > 0 ? f.kwhInput : 1000);
+  const r = compute(hours, prices, f.month);
+  if (!(r.kwh > 0)) { setEmpty(state.parsed ? 'Filen har ikke forbruk i denne måneden.' : 'Skriv inn forbruket i kWh.'); return; }
+  const spot = r.weighted * f.mva, skulle = spot + f.paaslag;
+  $('rSpot').textContent = fmt(spot) + ' øre'; $('rSnitt').textContent = fmt(r.simple * f.mva) + ' øre';
+  $('rPaaslag').textContent = fmt(f.paaslag) + ' øre'; $('rSkulle').textContent = fmt(skulle) + ' øre';
+  const kwhMonth = state.parsed ? r.kwh : f.kwhInput;
+  const notes = [];
+  notes.push(state.parsed ? `${fmt(r.total, 0)} kWh i ${label(f.month)} fra filen din.` : 'Omtrentlig: regnet med et typisk husholdningsforbruk. Last opp timeforbruket for et sikkert svar.');
+  if (r.missing > 0.5) notes.push(`${fmt(r.missing, 0)} kWh mangler spotpris og er holdt utenfor.`);
+  if (r.priceHours < 24 * 27) notes.push(`Spotprisene dekker bare ${Math.round(r.priceHours / 24)} dager av måneden.`);
+  $('rNote').textContent = notes.join(' ');
+  if (!Number.isFinite(f.faktura)) {
+    $('rFakt').textContent = '–'; $('rBig').innerHTML = '–<small>øre/kWh</small>'; $('rBig').className = 'big';
+    $('rVerdict').textContent = 'Skriv inn kraftprisen fra fakturaen.'; $('rVerdict').className = 'verdict neutral'; $('rKr').textContent = ''; return;
+  }
+  const ekstra = f.faktura - skulle;
+  $('rFakt').textContent = fmt(f.faktura) + ' øre';
+  $('rBig').innerHTML = (ekstra > 0 ? '+' : '') + fmt(ekstra) + '<small>øre/kWh</small>';
+  const cls = ekstra > 2 ? 'bad' : ekstra > 0.5 ? 'bad' : ekstra < -0.5 ? 'good' : 'good';
+  $('rBig').className = 'big ' + cls;
+  $('rVerdict').className = 'verdict ' + cls;
+  $('rVerdict').textContent = ekstra > 2 ? 'Du betaler tydelig mer enn spotpris og påslag.' : ekstra > 0.5 ? 'Du betaler litt mer enn spotpris og påslag.' : ekstra < -0.5 ? 'Du betaler mindre enn spotpris og påslag.' : 'Det stemmer. Avviket er bare avrunding.';
+  const krMnd = ekstra * kwhMonth / 100; const aar = Number.isFinite(f.aar) && f.aar > 0 ? f.aar : null;
+  $('rKr').innerHTML = Math.abs(ekstra) > 0.5
+    ? `${ekstra > 0 ? 'Ekstra' : 'Mindre'} i ${label(f.month)}: <span class="v">${fmtKr(Math.abs(krMnd))}</span>` + (aar ? ` · i året: <span class="v">${fmtKr(Math.abs(ekstra * aar / 100))}</span>` : ` · per 10 000 kWh: <span class="v">${fmtKr(Math.abs(ekstra * 100))}</span>`)
+    : '';
+}
+function setEmpty(msg) {
+  for (const id of ['rSpot', 'rSnitt', 'rPaaslag', 'rSkulle', 'rFakt']) $(id).textContent = '–';
+  $('rBig').innerHTML = '–<small>øre/kWh</small>'; $('rBig').className = 'big';
+  $('rVerdict').textContent = msg; $('rVerdict').className = 'verdict neutral'; $('rKr').textContent = ''; $('rNote').textContent = '';
+}
+
+async function readFile(file) {
+  if (/\.xlsx?$/i.test(file.name)) {
+    if (!window.XLSX) await new Promise((ok, bad) => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; s.onload = ok; s.onerror = () => bad(new Error('Klarte ikke å laste Excel-leseren. Lagre filen som CSV og prøv igjen.')); document.head.appendChild(s); });
+    const wb = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: true });
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: true, defval: '' });
+    const two = n => String(n).padStart(2, '0');
+    return { rows: rows.map(r => r.map(c => {
+      if (c instanceof Date) { const d = new Date(Math.round(c.getTime() / 60000) * 60000); return `${two(d.getDate())}.${two(d.getMonth() + 1)}.${d.getFullYear()} ${two(d.getHours())}:${two(d.getMinutes())}`; }
+      return String(c);
+    })) };
+  }
+  const buf = await file.arrayBuffer();
+  let text = new TextDecoder('utf-8').decode(buf);
+  if (text.includes('�')) text = new TextDecoder('windows-1252').decode(buf);
+  return { text };
+}
+async function handleFile(file) {
+  const meta = $('filemeta'); meta.className = 'filemeta'; meta.textContent = 'Leser filen …';
+  try {
+    const src = await readFile(file);
+    const p = src.rows ? parseRows(src.rows) : parseConsumption(src.text);
+    state.parsed = p; state.sumCols = defaultColumns(p.cols);
+    const opts = p.cols.map((c, i) => `<option value="${i}">${escapeHtml(c.name)}</option>`);
+    if (state.sumCols.length > 1) opts.unshift(`<option value="sum">Summen av ${state.sumCols.length} forbrukskolonner</option>`);
+    $('kolonne').innerHTML = opts.join(''); $('kolonne').value = state.sumCols.length > 1 ? 'sum' : String(state.sumCols[0]);
+    $('kolonneFelt').hidden = p.cols.length < 2; $('utenFil').hidden = true;
+    const months = [...new Set(p.stamps.map(osloMonth))].sort().reverse();
+    fillMonths(months, months[1] && months.length > 1 && isPartial(months[0], p) ? months[1] : months[0]);
+    const from = new Date(p.stamps[0]).toLocaleDateString('nb-NO'), to = new Date(p.stamps[p.stamps.length - 1]).toLocaleDateString('nb-NO');
+    meta.innerHTML = `${escapeHtml(file.name)}: ${p.stamps.length.toLocaleString('nb-NO')} ${p.intervalMin <= 15 ? 'kvartersverdier' : 'timeverdier'} fra ${from} til ${to}. <button type="button" class="linkbtn" id="fjern">Fjern filen</button>`;
+    $('fjern').onclick = () => { state.parsed = null; $('fil').value = ''; meta.textContent = ''; $('kolonneFelt').hidden = true; $('utenFil').hidden = false; fillMonths(monthsBack(14)); update(); };
+  } catch (e) { state.parsed = null; meta.className = 'filemeta err'; meta.textContent = e.message || 'Klarte ikke å lese filen.'; }
+  update();
+}
+function isPartial(month, p) { const n = p.stamps.filter(t => osloMonth(t) === month).length; return n < (p.intervalMin <= 15 ? 96 : 24) * 27; }
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+const drop = $('drop');
+$('fil').addEventListener('change', e => e.target.files[0] && handleFile(e.target.files[0]));
+['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, () => drop.classList.remove('over')));
+drop.addEventListener('drop', e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) handleFile(f); });
+$('form').addEventListener('submit', e => e.preventDefault());
+let timer; $('form').addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(update, 250); });
+$('form').addEventListener('change', update);
+try { const a = localStorage.getItem('omrade'); if (a) $('omrade').value = a; $('omrade').addEventListener('change', () => { try { localStorage.setItem('omrade', $('omrade').value); } catch (e) {} }); } catch (e) {}
+const ms = monthsBack(14); fillMonths(ms, ms[1]);
+update();
+}
+</script>
+</body>
+</html>
